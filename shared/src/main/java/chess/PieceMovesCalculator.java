@@ -57,7 +57,7 @@ public class PieceMovesCalculator {
         for (int[] dir : possibleDirection) {
             int newRow =  row + dir[0];
             int newCol =  col + dir[1];
-            while (newRow > 0 && newRow < 9 && newCol > 0 && newCol < 9) {
+            while (newRow >= 1 && newRow <= 8 && newCol >= 1 && newCol <= 8) {
                 ChessPosition newPosition = new ChessPosition(newRow, newCol);
                 ChessPiece occupyingPiece = board.getPiece(newPosition);
                 if(occupyingPiece == null) {

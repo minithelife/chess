@@ -48,4 +48,37 @@ public class ChessMove {
     public String toString() {
         return String.format("%s%s%s", startPosition, endPosition, promotionPiece);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true; // same object in memory
+        if (!(obj instanceof ChessMove)) return false; // not even the same type
+        ChessMove other = (ChessMove) obj; // cast to ChessMove
+
+        // Compare start and end positions and promotion piece
+        boolean positionsEqual = startPosition.equals(other.startPosition)
+                && endPosition.equals(other.endPosition);
+
+        boolean promotionEqual = (promotionPiece == null && other.promotionPiece == null)
+                || (promotionPiece != null && promotionPiece == other.promotionPiece);
+
+        return positionsEqual && promotionEqual;
+    }
+//    if my answer equals mys object return true
+//    if my object is not an instance of chessmove return false
+//    cast (chessmove) obj to a chessmove
+//        the boolean returns if the positions are equal and the promotions are equal
+
+
+
+    @Override
+    public int hashCode() {
+        int result = startPosition.hashCode(); // start position contributes to hash
+        result = 31 * result + endPosition.hashCode(); // end position
+        result = 31 * result + (promotionPiece != null ? promotionPiece.hashCode() : 0); // promotion piece
+        return result;
+    }
+//    make a new hascode called result with the hashcode of the startpostion.
+//    then you multiply it by 31 and add the end position,
+//    then multiply 31 to that and add the promotionpiece hashcode if not null, if is null add 0.
 }

@@ -38,4 +38,16 @@ public class ChessPosition {
     public String toString() {
         return String.format("[%d,%d]", row, col);
     }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof ChessPosition)) return false;
+        ChessPosition other = (ChessPosition) obj;
+        return this.row == other.row && this.col == other.col;
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * row + col;
+    }
 }
