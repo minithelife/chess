@@ -46,33 +46,39 @@ import java.util.List;
 //}
 
 public class PieceMovesCalculator {
+    public static void exploreDirections(ChessBoard board, ChessPosition myPosition, ChessPiece piece, int drow, int dcol, boolean repeat, List<ChessMove> moves){
+
+        int newRow = myPosition.getRow() + drow;
+        int newCol = myPosition.getColumn() + dcol;
+        while (newRow >= 1 && newRow <= 8 && newCol >= 1 && newCol <= 8){
+            ChessPosition newPosition = new ChessPosition (newRow, newCol);
+            ChessPiece occupyingPiece = board.getPiece(newPosition);
+
+            if(occupyingPiece == null){
+                moves.add(new ChessMove(myPosition, newPosition, null));
+            }else{
+                if (piece.getTeamColor() != occupyingPiece.getTeamColor()){
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+
+                }
+                break;
+            }
+
+
+            if (!repeat) break;
+
+            newRow = newRow + drow;
+            newCol = newCol + dcol;
+        }
+    }
     public static Collection<ChessMove> bishopMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
         List<ChessMove> moves = new ArrayList<>();
-        int row = myPosition.getRow();
-        int col = myPosition.getColumn();
 
-        int possibleDirection[][] = {{1,1}, {1,-1}, {-1,1}, {-1,-1}};
+        int[][] possibleDirection = {{1,1}, {1,-1}, {-1,1}, {-1,-1}};
 
 
         for (int[] dir : possibleDirection) {
-            int newRow =  row + dir[0];
-            int newCol =  col + dir[1];
-            while (newRow >= 1 && newRow <= 8 && newCol >= 1 && newCol <= 8) {
-                ChessPosition newPosition = new ChessPosition(newRow, newCol);
-                ChessPiece occupyingPiece = board.getPiece(newPosition);
-                if(occupyingPiece == null) {
-                    moves.add(new ChessMove(myPosition, newPosition, null ));
-                }
-                else{
-                    if (piece.getTeamColor() != occupyingPiece.getTeamColor()) {
-                        moves.add(new ChessMove(myPosition, newPosition, null));
-                    }
-
-                    break;
-                }
-                newRow += dir[0];
-                newCol += dir[1];
-            }
+            exploreDirections(board, myPosition, piece, dir[0], dir[1], true, moves);
 
         }
         return moves;
@@ -81,27 +87,11 @@ public class PieceMovesCalculator {
     }
 
     public static Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
-        int row = myPosition.getRow();
-        int col = myPosition.getColumn();
-
         int[][] direction = {{1,1}, {1,-1}, {-1,1}, {-1,-1}, {0,1}, {0,-1}, {1,0}, {-1,0}};
         List<ChessMove> moves = new ArrayList<> ();
 
         for (int[] dir : direction){
-            int newRow = row+dir[0];
-            int newCol = col+dir[1];
-            if ( newRow >= 0 && newRow <= 8 && newCol >= 0 && newCol <= 8){
-                ChessPosition newPosition = new ChessPosition(newRow, newCol);
-                ChessPiece occupyingPiece = board.getPiece(newPosition);
-                if (occupyingPiece == null) {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
-                }
-                else {
-                    if (piece.getTeamColor() != occupyingPiece.getTeamColor()){
-                        moves.add(new ChessMove(myPosition, newPosition, null));
-                    }
-                }
-            }
+           exploreDirections(board, myPosition, piece, dir[0], dir[1], false, moves);
         }
         return moves;
     }
