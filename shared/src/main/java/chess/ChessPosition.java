@@ -45,9 +45,16 @@ public class ChessPosition {
         ChessPosition other = (ChessPosition) obj;
         return this.row == other.row && this.col == other.col;
     }
+    //if this = obj return tru
+    //if not this obj is instance of chessposition return false
+    //chessposition other = (chessPostion) obj
+    //return this.row == other.row && this.col == other.col
+
 
     @Override
     public int hashCode() {
         return 31 * row + col;
     }
+
+
 }
