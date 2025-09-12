@@ -104,5 +104,15 @@ public class PieceMovesCalculator {
     //if there's another piece take their spot
     //
     //return
+
+    public static Collection<ChessMove> knightMove(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
+        List<ChessMove> moves = new ArrayList<>();
+        int[][] possibleDirections = {{2, -1},{2, 1},{-2, 1},{-2, -1}, {-1, 2}, {-1, -2}, {1, -2}, {1, 2}};
+
+        for (int[] dir : possibleDirections){
+            exploreDirections(board, myPosition, piece, dir[0], dir[1], false, moves);
+        }
+        return moves;
+    }
 }
 
