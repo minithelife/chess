@@ -63,6 +63,8 @@ public class ChessPiece {
         switch(type){
             case BISHOP:
                 return PieceMovesCalculator.bishopMoves(board, myPosition, this);
+            case KING:
+                return PieceMovesCalculator.kingMoves(board, myPosition, this);
             default:
                 return List.of();
         }

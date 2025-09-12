@@ -79,5 +79,40 @@ public class PieceMovesCalculator {
 
 
     }
+
+    public static Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
+
+        int[][] direction = {{1,1}, {1,-1}, {-1,1}, {-1,-1}, {0,1}, {0,-1}, {1,0}, {-1,0}};
+        List<ChessMove> moves = new ArrayList<> ();
+
+        for (int[] dir : direction){
+            int newRow = row+dir[0];
+            int newCol = col+dir[1];
+            if ( newRow >= 0 && newRow <= 8 && newCol >= 0 && newCol <= 8){
+                ChessPosition newPosition = new ChessPosition(newRow, newCol);
+                ChessPiece occupyingPiece = board.getPiece(newPosition);
+                if (occupyingPiece == null) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                }
+                else {
+                    if (piece.getTeamColor() != occupyingPiece.getTeamColor()){
+                        moves.add(new ChessMove(myPosition, newPosition, null));
+                    }
+                }
+            }
+        }
+        return moves;
+    }
+    //return an array of moves
+    // make a list of directions
+    // make a list of moves that it could possibly take
+    // for each direction you loop through
+    // if adding that direction doesnt take you off the grid
+    // if it is empty take that spot
+    //if there's another piece take their spot
+    //
+    //return
 }
 
