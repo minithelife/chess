@@ -75,4 +75,20 @@ public class ChessPiece {
 
 
     }
+
+    @Override
+    public int hashCode() {
+        int result = (pieceColor != null ? pieceColor.hashCode() : 0);
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        ChessPiece other = (ChessPiece) obj;
+        return pieceColor == other.pieceColor && type == other.type;
+    }
 }
