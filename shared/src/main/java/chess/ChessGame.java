@@ -38,6 +38,7 @@ public class ChessGame {
         BLACK
     }
 
+
     /**
      * Gets a valid moves for a piece at the given location
      *

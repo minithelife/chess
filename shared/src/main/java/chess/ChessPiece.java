@@ -30,10 +30,6 @@ public class ChessPiece {
         ROOK,
         PAWN
     }
-    public enum PieceColor {
-        WHITE,
-        BLACK
-    }
 
     /**
      * @return Which team this chess piece belongs to
@@ -67,10 +63,16 @@ public class ChessPiece {
                 return PieceMovesCalculator.kingMoves(board, myPosition, this);
             case KNIGHT:
                 return PieceMovesCalculator.knightMove(board, myPosition, this);
+            case PAWN:
+                return PieceMovesCalculator.pawnMoves(board, myPosition, this);
+            case QUEEN:
+                return PieceMovesCalculator.QueenMoves(board, myPosition, this);
+            case ROOK:
+                return PieceMovesCalculator.rookMoves(board, myPosition, this);
             default:
                 return List.of();
         }
-        //this is just so it can run. I should make code for the moves
+
 
     }
 }
