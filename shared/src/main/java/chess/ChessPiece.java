@@ -35,7 +35,6 @@ public class ChessPiece {
      * @return Which team this chess piece belongs to
      */
     public ChessGame.TeamColor getTeamColor() {
-
         return pieceColor;
     }
 
@@ -43,8 +42,7 @@ public class ChessPiece {
      * @return which type of chess piece this piece is
      */
     public PieceType getPieceType() {
-
-        return type;
+         return type;
     }
 
     /**
@@ -55,40 +53,35 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ChessPiece piece = board.getPiece(myPosition);
         switch(type){
             case BISHOP:
-                return PieceMovesCalculator.bishopMoves(board, myPosition, this);
+                return CalculatePieceMoves.BishopMoves(board, myPosition, this);
             case KING:
-                return PieceMovesCalculator.kingMoves(board, myPosition, this);
+                return CalculatePieceMoves.KingMoves(board, myPosition, this);
             case KNIGHT:
-                return PieceMovesCalculator.knightMove(board, myPosition, this);
+                return CalculatePieceMoves.KnightMoves(board, myPosition, this);
             case PAWN:
-                return PieceMovesCalculator.pawnMoves(board, myPosition, this);
+                return CalculatePieceMoves.PawnMoves(board, myPosition, this);
             case QUEEN:
-                return PieceMovesCalculator.QueenMoves(board, myPosition, this);
+                return CalculatePieceMoves.QueenMoves(board, myPosition, this);
             case ROOK:
-                return PieceMovesCalculator.rookMoves(board, myPosition, this);
+                return CalculatePieceMoves.RookMoves(board, myPosition, this);
             default:
                 return List.of();
         }
-
-
     }
 
     @Override
     public int hashCode() {
-        int result = (pieceColor != null ? pieceColor.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
+        int result = 31 * ( pieceColor!= null ?  pieceColor.hashCode() : 0 );
+        result = 31 * result + (type != null ? type.hashCode() : 0 );
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-
-        ChessPiece other = (ChessPiece) obj;
-        return pieceColor == other.pieceColor && type == other.type;
+        if (obj == null) return false;
+        ChessPiece  other = (ChessPiece) obj;
+        return this.pieceColor == other.pieceColor &&  this.type == other.type;
     }
 }
