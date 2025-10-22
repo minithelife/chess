@@ -147,10 +147,40 @@ public class ChessGame {
         if (move.getPromotionPiece() != null) {
             movingPiece = new ChessPiece(movingPiece.getTeamColor(), move.getPromotionPiece());
         }
+        // handle en passant
+        if(movingPiece.getPieceType() == ChessPiece.PieceType.PAWN && move.getEndPosition().equals(enPassantTarget)){
+            int dir = (movingPiece.getTeamColor() == TeamColor.WHITE) ? -1:1;
+            ChessPosition capturedPawnPos = new ChessPosition(move.getEndPosition().getRow() + dir, move.getEndPosition().getCol());
+            b.addPiece(capturedPawnPos, null);
+        }
+        // handle castling
+        if(movingPiece.getPieceType() == ChessPiece.PieceType.KING){
+            int startCol = move.getStartPosition().getCol();
+            int endCol = move.getEndPosition().getCol();
+            if(Math.abs(endCol - startCol) == 2){
+                int rookStartCol =(endCol > startCol) ? 8:1;
+                int rookEndCol = (endCol > startCol) ? endCol - 1: endCol + 1;
+                ChessPosition rookStart = new ChessPosition(move.getStartPosition().getRow(), rookStartCol);
+                ChessPosition rookEnd = new ChessPosition(move.getStartPosition().getRow(), rookEndCol);
+                ChessPiece rook = b.getPiece(rookStart);
+                b.addPiece(rookEnd, rook);
+                b.addPiece(rookStart, null);
+            }
+
+        }
+
 
         // move the piece
         b.addPiece(move.getEndPosition(), movingPiece);
         b.addPiece(move.getStartPosition(), null); // clear old square
+
+        //update en passant target if pawn moved 2 squares
+        if(movingPiece.getPieceType() == ChessPiece.PieceType.PAWN && Math.abs(move.getEndPosition().getRow() - move.getStartingPosition().getRow()) == 2){
+            int row = (move.getStartPosition().getRow() + move.getEndPosition().getRow()) / 2;
+            enPassantTarget = new ChessPosition(row, move.getStartPosition().getCol());
+        }else{
+            enPassantTarget = null;
+        }
     }
 
     /**
