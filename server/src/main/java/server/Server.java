@@ -1,14 +1,18 @@
 package server;
 
-import com.google.gson.*;
-import dataaccess.*;
-import model.*;
-import service.*;
-
+import com.google.gson.Gson;
+import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
+import dataaccess.InMemoryDataAccess;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import service.GameService;
+import service.UserService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Server {
 
@@ -74,13 +78,19 @@ public class Server {
     private void handleRegister(Context ctx) throws DataAccessException {
         var req = gson.fromJson(ctx.body(), RegisterRequest.class);
         var result = userService.register(req);
-        ctx.status(200).json(Map.of("username", result.username(), "authToken", result.authToken()));
+        ctx.status(200).json(Map.of(
+                "username", result.username(),
+                "authToken", result.authToken()
+        ));
     }
 
     private void handleLogin(Context ctx) throws DataAccessException {
         var req = gson.fromJson(ctx.body(), LoginRequest.class);
         var result = userService.login(req);
-        ctx.status(200).json(Map.of("username", result.username(), "authToken", result.authToken()));
+        ctx.status(200).json(Map.of(
+                "username", result.username(),
+                "authToken", result.authToken()
+        ));
     }
 
     private void handleLogout(Context ctx) throws DataAccessException {
@@ -94,7 +104,9 @@ public class Server {
         String username = userService.authenticate(token);
         var req = gson.fromJson(ctx.body(), CreateGameRequest.class);
         var res = gameService.createGame(req, username);
-        ctx.status(200).json(Map.of("gameID", res.gameID()));
+        ctx.status(200).json(Map.of(
+                "gameID", res.gameID()
+        ));
     }
 
     private void handleJoinGame(Context ctx) throws DataAccessException {
