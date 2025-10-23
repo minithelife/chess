@@ -37,22 +37,29 @@ public class GameService {
     public void joinGame(int gameId, String username, String color) throws DataAccessException {
         GameData game = dao.getGame(gameId);
         if (game == null) throw new BadRequestException("Game not found");
+        if (username == null || username.isBlank()) throw new BadRequestException("Username cannot be null or empty");
 
         GameData updatedGame;
-        switch (color) {
+
+        switch (color.toUpperCase()) {
             case "WHITE" -> {
-                if (game.withWhite() != null) throw new ForbiddenException("White already taken");
+                if (game.white() != null) {
+                    throw new ForbiddenException("White already taken");
+                }
                 updatedGame = game.withWhite(username);
             }
             case "BLACK" -> {
-                if (game.withBlack() != null) throw new ForbiddenException("Black already taken");
+                if (game.black() != null) {
+                    throw new ForbiddenException("Black already taken");
+                }
                 updatedGame = game.withBlack(username);
             }
-            default -> throw new BadRequestException("Invalid team color");
+            default -> throw new BadRequestException("Invalid team color: " + color);
         }
 
         dao.updateGame(updatedGame);
     }
+
 
     /** Lists all games with their current player assignments. */
     public List<GameData> listGames() throws DataAccessException {
