@@ -59,11 +59,14 @@ public class UserService {
         dao.deleteAuth(token);
     }
 
+    // --- EDITED METHOD: Throws UnauthorizedException if token is invalid or missing. ---
     public String authenticate(String token) throws DataAccessException {
-        if (token == null) return null;
+        if (token == null) throw new UnauthorizedException("No token provided");
         AuthData auth = dao.getAuth(token);
-        return auth == null ? null : auth.username();
+        if (auth == null) throw new UnauthorizedException("Invalid token");
+        return auth.username();
     }
+    // ----------------------------------------------------------------------------------
 
     private static String generateToken() {
         return UUID.randomUUID().toString();

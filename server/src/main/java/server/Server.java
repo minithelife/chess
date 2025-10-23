@@ -11,6 +11,8 @@ import requests.*;
 import results.*;
 import service.GameService;
 import service.UserService;
+import service.UserService.BadRequestException;
+import service.UserService.UnauthorizedException; // Import for clarity
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -89,29 +91,41 @@ public class Server {
         ctx.status(200).json(Map.of());
     }
 
+    // --- EDITED METHOD: Enforces 400 Bad Request if gameName is missing. ---
     private void handleCreateGame(Context ctx) throws DataAccessException {
         String token = ctx.header("authorization");
+        // userService.authenticate now throws 401 if token is bad
         String username = userService.authenticate(token);
+
         var req = gson.fromJson(ctx.body(), CreateGameRequest.class);
+
+        // Check for 400 Bad Request
+        if (req == null || req.gameName() == null || req.gameName().isBlank()) {
+            throw new BadRequestException("Bad request: missing gameName");
+        }
+
         var res = gameService.createGame(req.gameName(), username);
         ctx.status(200).json(Map.of("gameID", res.gameID()));
     }
+    // ----------------------------------------------------------------------
 
     private void handleJoinGame(Context ctx) throws DataAccessException {
         String token = ctx.header("authorization");
+        // userService.authenticate now throws 401 if token is bad
         String username = userService.authenticate(token);
+
         var req = gson.fromJson(ctx.body(), JoinGameRequest.class);
         gameService.joinGame(req.gameID(), username, req.playerColor());
         ctx.status(200).json(Map.of());
     }
 
+    // --- EDITED METHOD: Removed manual 401 check, now handled by authenticate. ---
     private void handleListGames(Context ctx) throws DataAccessException {
         String token = ctx.header("authorization");
+        // userService.authenticate now throws 401 if token is bad
         String username = userService.authenticate(token);
-        if (username == null) {
-            ctx.status(401).json(Map.of("message", "Error: unauthorized"));
-            return;
-        }
+
+        // The rest of the logic is fine
         var list = gameService.listGames();
 
         List<Map<String, Object>> out = new ArrayList<>();
@@ -125,4 +139,5 @@ public class Server {
         }
         ctx.status(200).json(Map.of("games", out));
     }
+    // -----------------------------------------------------------------------------
 }
