@@ -1,4 +1,6 @@
-package requests;
+package results;
 
-public class CreateGameResult {
-}
+/**
+ * Represents the result returned after creating a new game.
+ */
+public record CreateGameResult(int gameID) { }
