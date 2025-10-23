@@ -19,6 +19,7 @@ public class GameService {
     }
 
     /** Creates a new game and returns its ID. */
+    /** Create a new createGame file with setters and getters. make this in shared/.../requests and results/java . also use records**/
     public CreateGameResult createGame(String name, String username) throws DataAccessException {
         if (name == null || name.isBlank()) throw new BadRequestException("Game name cannot be null or empty");
 
