@@ -4,6 +4,7 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.GameData;
 import model.UserData;
+import requests.CreateGameResult;
 
 import java.util.ArrayList;
 import java.util.List;

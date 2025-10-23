@@ -4,6 +4,9 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.AuthData;
 import model.UserData;
+import requests.RegisterRequest;
+import requests.LoginRequest;
+import results.AuthResult;
 
 import java.util.UUID;
 
@@ -17,9 +20,6 @@ public class UserService {
         this.dao = dao;
     }
 
-    /**
-     * Registers a new user and returns an authentication result.
-     */
     public AuthResult register(RegisterRequest req) throws DataAccessException {
         if (req == null || req.username() == null || req.password() == null || req.email() == null)
             throw new BadRequestException("Bad request: missing fields");
@@ -36,9 +36,6 @@ public class UserService {
         return new AuthResult(req.username(), token);
     }
 
-    /**
-     * Logs in an existing user and returns a new authentication token.
-     */
     public AuthResult login(LoginRequest req) throws DataAccessException {
         if (req == null || req.username() == null || req.password() == null)
             throw new BadRequestException("Bad request: missing fields");
@@ -55,9 +52,6 @@ public class UserService {
         return new AuthResult(req.username(), token);
     }
 
-    /**
-     * Logs out a user by invalidating the given authentication token.
-     */
     public void logout(String token) throws DataAccessException {
         if (token == null) throw new UnauthorizedException("No token provided");
         AuthData auth = dao.getAuth(token);
@@ -65,21 +59,16 @@ public class UserService {
         dao.deleteAuth(token);
     }
 
-    /**
-     * Validates a token and returns the associated username, or null if invalid.
-     */
     public String authenticate(String token) throws DataAccessException {
         if (token == null) return null;
         AuthData auth = dao.getAuth(token);
         return auth == null ? null : auth.username();
     }
 
-    /** Generates a new unique authentication token. */
     private static String generateToken() {
         return UUID.randomUUID().toString();
     }
 
-    // Custom exceptions to map server responses
     public static class BadRequestException extends DataAccessException {
         public BadRequestException(String msg) { super(msg); }
     }

@@ -6,9 +6,11 @@ import dataaccess.DataAccessException;
 import dataaccess.InMemoryDataAccess;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import model.GameData;
+import requests.*;
+import results.*;
 import service.GameService;
 import service.UserService;
-import model.GameData; // ✅ Make sure this import matches your actual package
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -91,15 +93,15 @@ public class Server {
         String token = ctx.header("authorization");
         String username = userService.authenticate(token);
         var req = gson.fromJson(ctx.body(), CreateGameRequest.class);
-        var res = gameService.createGame(req, username);
-        ctx.status(200).json(Map.of("gameID", res.gameId()));
+        var res = gameService.createGame(req.gameName(), username);
+        ctx.status(200).json(Map.of("gameID", res.gameID()));
     }
 
     private void handleJoinGame(Context ctx) throws DataAccessException {
         String token = ctx.header("authorization");
         String username = userService.authenticate(token);
         var req = gson.fromJson(ctx.body(), JoinGameRequest.class);
-        gameService.joinGame(req, username);
+        gameService.joinGame(req.gameID(), username, req.playerColor());
         ctx.status(200).json(Map.of());
     }
 
@@ -123,12 +125,4 @@ public class Server {
         }
         ctx.status(200).json(Map.of("games", out));
     }
-
-    // ---- Request/Response DTOs ----
-    public static record RegisterRequest(String username, String password, String email) {}
-    public static record LoginRequest(String username, String password) {}
-    public static record AuthResult(String username, String authToken) {}
-    public static record CreateGameRequest(String gameName) {}
-    public static record CreateGameResult(int gameID) {}
-    public static record JoinGameRequest(String playerColor, Integer gameID) {}
 }
