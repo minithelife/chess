@@ -8,7 +8,7 @@ public class AuthDAO {
     private static final Map<String, AuthData> auths = new HashMap<>();
 
     public void createAuth(AuthData auth) {
-        auths.put(auth.authToken(), auth);
+        auths.put(auth.token(), auth);
     }
 
     public AuthData getAuth(String token) {
