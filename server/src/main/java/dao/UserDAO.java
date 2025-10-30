@@ -1,25 +1,21 @@
 package dao;
 
-import dataaccess.*;
-
+import dataaccess.InMemoryDataAccess;
 import model.UserData;
-import model.AuthData;
-import java.util.HashMap;
-import java.util.Map;
 
-public class UserDAO {
-    private final InMemoryDataAccess dataAccess = new InMemoryDataAccess();
-    public void clearDAO(){
-        dataAccess.clear();
-    }
+public class UserDAO extends DAO {
+
+//    private final InMemoryDataAccess dataAccess = new InMemoryDataAccess();
 
     public UserData getUser(String username) {
         return dataAccess.getUser(username);
     }
 
-
     public void createUser(UserData user) {
         dataAccess.createUser(user);
     }
 
+    public void clearDAO() {
+        dataAccess.clear();
+    }
 }

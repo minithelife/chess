@@ -1,19 +1,13 @@
 package handler;
 
 import io.javalin.http.Context;
-import service.*;
+import service.ClearService;
 
+public class ClearHandler {
+    private final ClearService service = new ClearService();
 
-public class ClearHandler{
-    public void clear(Context ctx) throws Exception {
-        //System.out.println("called Clear");
-        //error handling and call to service
-        ClearService service = new ClearService();
-
-        //throw new Exception("does not work");
-
-        service.clear();
+    public void clear(Context ctx) {
+        service.clear(); // just clears DAO
         ctx.status(200);
-
     }
 }
