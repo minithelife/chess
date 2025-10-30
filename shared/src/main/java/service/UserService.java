@@ -1,10 +1,16 @@
 package service;
 
-import dataaccess.*;
-import model.*;
+import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
+import model.AuthData;
+import model.UserData;
+import model.GameRequest;
 
-import java.util.UUID;
+import io.javalin.http.Context;
 
+/**
+ * Handles user-related operations: registration, login, logout, game creation, and joining games.
+ */
 public class UserService {
     private final DataAccess dao;
 
@@ -12,63 +18,76 @@ public class UserService {
         this.dao = dao;
     }
 
-    public AuthResult register(RegisterRequest req) throws DataAccessException {
-        if (req == null || req.username == null || req.password == null || req.email == null)
-            throw new BadRequestException("bad request");
+    // ---------------- User Operations ----------------
 
-        if (dao.userExists(req.username)) throw new ForbiddenException("already taken");
+    public void registerUser(Context ctx, UserData request) {
+        if (request.username() == null || request.password() == null) {
+            ctx.status(400).result("Error: missing username or password");
+            return;
+        }
 
-        var u = new UserData(req.username, req.password, req.email);
-        dao.createUser(u);
-
-        String token = generateToken();
-        var auth = new AuthData(token, req.username);
-        dao.createAuth(auth);
-
-        return new AuthResult(req.username, token);
+        try {
+            dao.registerUser(request);
+            ctx.status(201).result("User registered successfully");
+        } catch (DataAccessException e) {
+            ctx.status(500).result("Internal server error");
+        }
     }
 
-    public AuthResult login(LoginRequest req) throws DataAccessException {
-        if (req == null || req.username == null || req.password == null)
-            throw new BadRequestException("bad request");
+    public void loginUser(Context ctx, AuthData request) {
+        if (request.username() == null || request.password() == null) {
+            ctx.status(400).result("Error: missing username or password");
+            return;
+        }
 
-        var u = dao.getUser(req.username);
-        if (u == null) throw new UnauthorizedException("unauthorized");
-
-        if (!u.password().equals(req.password)) throw new UnauthorizedException("unauthorized");
-
-        String token = generateToken();
-        var auth = new AuthData(token, req.username);
-        dao.createAuth(auth);
-
-        return new AuthResult(req.username, token);
+        try {
+            boolean success = dao.loginUser(request);
+            if (success) {
+                ctx.status(200).result("Login successful");
+            } else {
+                ctx.status(401).result("Invalid credentials");
+            }
+        } catch (DataAccessException e) {
+            ctx.status(500).result("Internal server error");
+        }
     }
 
-    public void logout(String token) throws DataAccessException {
-        if (token == null) throw new UnauthorizedException("unauthorized");
-        var auth = dao.getAuth(token);
-        if (auth == null) throw new UnauthorizedException("unauthorized");
-        dao.deleteAuth(token);
+    // ---------------- Game Operations ----------------
+
+    public void createGame(Context ctx, GameRequest request) {
+        if (request.gameName() == null || request.owner() == null) {
+            ctx.status(400).result("Error: missing gameName or owner");
+            return;
+        }
+
+        try {
+            dao.createGame(request);
+            ctx.status(201).result("Game created successfully");
+        } catch (DataAccessException e) {
+            ctx.status(500).result("Internal server error");
+        }
     }
 
-    public String authenticate(String token) throws DataAccessException {
-        if (token == null) return null;
-        var auth = dao.getAuth(token);
-        return auth == null ? null : auth.username();
-    }
+    public void joinGame(Context ctx, GameRequest request) {
+        if (request.gameID() == null) {
+            ctx.status(400).result("Error: missing gameID");
+            return;
+        }
 
-    private static String generateToken() {
-        return UUID.randomUUID().toString();
-    }
+        if (request.color() == null) {
+            ctx.status(400).result("Error: missing color");
+            return;
+        }
 
-    // exceptions to let server map to correct status
-    public static class BadRequestException extends DataAccessException {
-        public BadRequestException(String msg) { super(msg); }
-    }
-    public static class UnauthorizedException extends DataAccessException {
-        public UnauthorizedException(String msg) { super(msg); }
-    }
-    public static class ForbiddenException extends DataAccessException {
-        public ForbiddenException(String msg) { super(msg); }
+        try {
+            boolean success = dao.joinGame(request);
+            if (success) {
+                ctx.status(200).result("Joined game successfully");
+            } else {
+                ctx.status(403).result("Unable to join game");
+            }
+        } catch (DataAccessException e) {
+            ctx.status(500).result("Internal server error");
+        }
     }
 }
