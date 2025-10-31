@@ -1,4 +1,4 @@
-package service;
+package passoff.service;
 
 import model.AuthData;
 import model.UserData;
