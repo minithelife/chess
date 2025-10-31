@@ -55,17 +55,17 @@ public class ChessPiece {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         switch(type){
             case BISHOP:
-                return CalculatePieceMoves.BishopMoves(board, myPosition, this);
+                return CalculatePieceMoves.bishopmoves(board, myPosition, this);
             case KING:
-                return CalculatePieceMoves.KingMoves(board, myPosition, this);
+                return CalculatePieceMoves.kingmoves(board, myPosition, this);
             case KNIGHT:
-                return CalculatePieceMoves.KnightMoves(board, myPosition, this);
+                return CalculatePieceMoves.knightmoves(board, myPosition, this);
             case PAWN:
-                return CalculatePieceMoves.PawnMoves(board, myPosition, this);
+                return CalculatePieceMoves.pawnmoves(board, myPosition, this);
             case QUEEN:
-                return CalculatePieceMoves.QueenMoves(board, myPosition, this);
+                return CalculatePieceMoves.queenmoves(board, myPosition, this);
             case ROOK:
-                return CalculatePieceMoves.RookMoves(board, myPosition, this);
+                return CalculatePieceMoves.rookmoves(board, myPosition, this);
             default:
                 return List.of();
         }

@@ -28,7 +28,7 @@ public class CalculatePieceMoves {
             newCol = newCol + dcol;
         }
     }
-    public static Collection<ChessMove> BishopMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece){
+    public static Collection<ChessMove> bishopmoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece){
         List<ChessMove> moves = new ArrayList<>();
         int[][] directions = {{1,-1}, {-1,-1}, {1,1}, {-1,1}};
         for(int[] dir : directions){
@@ -36,7 +36,7 @@ public class CalculatePieceMoves {
         }
         return moves;
     }
-    public static Collection<ChessMove> KingMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece){
+    public static Collection<ChessMove> kingmoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece){
         List<ChessMove> moves = new ArrayList<>();
         int[][] directions = {{1,-1}, {-1,-1}, {1,1}, {-1,1}, {1,0}, {-1,0}, {0,1}, {0,-1}};
         for(int[] dir : directions){
@@ -44,7 +44,7 @@ public class CalculatePieceMoves {
         }
         return moves;
     }
-    public static Collection<ChessMove> KnightMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece){
+    public static Collection<ChessMove> knightmoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece){
         List<ChessMove> moves = new ArrayList<>();
         int[][] directions = {{2,-1}, {2,1}, {-2,1}, {-2,-1}, {1,2}, {-1,2}, {1,-2}, {-1,-2}};
         for(int[] dir : directions){
@@ -52,7 +52,7 @@ public class CalculatePieceMoves {
         }
         return moves;
     }
-    public static Collection<ChessMove> PawnMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece){
+    public static Collection<ChessMove> pawnmoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece){
         List<ChessMove> moves = new ArrayList<>();
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
@@ -105,7 +105,7 @@ public class CalculatePieceMoves {
         return moves;
         //if forward is null. if 8 then promote. else. normal. if at 2. double
     }
-    public static Collection<ChessMove> QueenMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece){
+    public static Collection<ChessMove> queenmoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece){
         List<ChessMove> moves = new ArrayList<>();
         int[][] directions = {{1,-1}, {-1,-1}, {1,1}, {-1,1}, {1,0}, {-1,0}, {0,1}, {0,-1}};
         for(int[] dir : directions){
@@ -113,7 +113,7 @@ public class CalculatePieceMoves {
         }
         return moves;
     }
-    public static Collection<ChessMove> RookMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece){
+    public static Collection<ChessMove> rookmoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece){
         List<ChessMove> moves = new ArrayList<>();
         int[][] directions = { {1,0}, {-1,0}, {0,1}, {0,-1}};
         for(int[] dir : directions){
