@@ -27,7 +27,9 @@ public class CalculatePieceMoves {
                 break;
             }
 
-            if (!repeat) break;
+            if (!repeat) {
+                break;
+            }
             newRow += drow;
             newCol += dcol;
         }
@@ -119,7 +121,9 @@ public class CalculatePieceMoves {
 
         ChessPosition forward = new ChessPosition(newRow, col);
         ChessPiece frontPiece = board.getPiece(forward);
-        if (frontPiece != null) return;
+        if (frontPiece != null) {
+            return;
+        }
 
         if (isPromotion(piece, newRow)) {
             addPromotions(moves, pos, forward);
@@ -146,11 +150,15 @@ public class CalculatePieceMoves {
         int[] diagonals = {1, -1};
         for (int d : diagonals) {
             int newCol = col + d;
-            if (!inBounds(newRow, newCol)) continue;
+            if (!inBounds(newRow, newCol)) {
+                continue;
+            }
 
             ChessPosition diagPos = new ChessPosition(newRow, newCol);
             ChessPiece diagPiece = board.getPiece(diagPos);
-            if (diagPiece == null) continue;
+            if (diagPiece == null) {
+                continue;
+            }
 
             if (piece.getTeamColor() != diagPiece.getTeamColor()) {
                 if (isPromotion(piece, newRow)) {

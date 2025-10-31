@@ -45,7 +45,9 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece piece = board.getPiece(startPosition);
-        if (piece == null) return null;
+        if (piece == null) {
+            return null;
+        }
 
         Collection<ChessMove> moves = new HashSet<>(piece.pieceMoves(board, startPosition));
 
@@ -145,13 +147,17 @@ public class ChessGame {
      */
     private boolean isInCheck(TeamColor teamColor, ChessBoard b) {
         ChessPosition kingPos = findKing(teamColor, b);
-        if (kingPos == null) return false;
+        if (kingPos == null) {
+            return false;
+        }
 
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
                 ChessPosition pos = new ChessPosition(row, col);
                 ChessPiece piece = b.getPiece(pos);
-                if (piece == null || piece.getTeamColor() == teamColor) continue;
+                if (piece == null || piece.getTeamColor() == teamColor) {
+                    continue;
+                }
 
                 Collection<ChessMove> moves = piece.pieceMoves(b, pos);
                 for (ChessMove m : moves) {
@@ -186,8 +192,12 @@ public class ChessGame {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ChessGame)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ChessGame)) {
+            return false;
+        }
         ChessGame chessGame = (ChessGame) o;
         return currentTurn == chessGame.currentTurn &&
                 Objects.equals(board, chessGame.board);
