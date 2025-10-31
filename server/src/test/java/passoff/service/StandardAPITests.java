@@ -1,13 +1,24 @@
-package passoff.server;
+package passoff.service;
 
 import chess.ChessGame;
 import org.junit.jupiter.api.*;
 import passoff.model.*;
+import passoff.server.TestServerFacade;
 import server.Server;
 
 import java.net.HttpURLConnection;
 import java.util.*;
 
+/**
+ 6 unit tests for all my files in service, one positive and one negative test. authResult, game .
+ Clear	Clears the database. Removes all users, games, and authTokens. (this doesn't need a negative test, but needs a positive test.)
+ Register	Register a new user.
+ Login	Logs in an existing user (returns a new authToken).
+ Logout	Logs out the user represented by the provided authToken.
+ List Games	Verifies the provided authToken and gives a list of all games.
+ Create Game	Verifies the provided authToken and creates a new game.
+ Join Game	Verifies the provided authToken. Checks that the specified game exists, and adds the caller as the requested color to the game.
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class StandardAPITests {
 

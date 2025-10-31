@@ -1,4 +1,4 @@
-package passoff.server;
+package passoff.service;
 
 import model.AuthData;
 import model.UserData;
@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test;
 import handler.exceptions.BadRequestException;
 import handler.exceptions.UnauthorizedException;
 import dataaccess.*;
+import service.ClearService;
+import service.LoginService;
+import service.RegisterService;
 
 import static org.junit.jupiter.api.Assertions.*;
 

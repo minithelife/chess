@@ -1,4 +1,4 @@
-package passoff.server;
+package passoff.service;
 
 import dataaccess.*;
 import model.AuthData;
@@ -6,6 +6,9 @@ import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import service.GameService;
+import service.LoginService;
+import service.RegisterService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
