@@ -10,11 +10,6 @@ public class InMemoryUser implements UserDAO {
     private final Map<String, UserData> users = new HashMap<>();
 
     @Override
-    public boolean userExists(String username) {
-        return users.containsKey(username);
-    }
-
-    @Override
     public void createUser(UserData user) {
         users.put(user.username(), user);
     }
