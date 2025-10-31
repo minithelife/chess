@@ -7,13 +7,18 @@ import model.UserData;
 import service.RegisterService;
 
 public class RegisterHandler {
+
     private final Gson gson = new Gson();
-    private final RegisterService service = new RegisterService();
+    private final RegisterService service;
+
+    public RegisterHandler(RegisterService service) {
+        this.service = service;
+    }
 
     public void register(Context ctx) {
         UserData user = gson.fromJson(ctx.body(), UserData.class);
-        AuthData auth = service.register(user); // may throw BadRequestException or ForbiddenException
+        AuthData auth = service.register(user);
         ctx.status(200);
-        ctx.json(auth);
+        ctx.result(gson.toJson(auth));
     }
 }

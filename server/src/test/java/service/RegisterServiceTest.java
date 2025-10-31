@@ -6,17 +6,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import handler.exceptions.BadRequestException;
 import handler.exceptions.ForbiddenException;
+import dataaccess.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class RegisterServiceTest {
 
     private RegisterService service;
+    private UserDAO userDAO;
+    private AuthDAO authDAO;
 
     @BeforeEach
     public void setup() {
-        service = new RegisterService();
-        new ClearService().clear(); // make sure DAO is empty
+        authDAO = new InMemoryAuth();
+        userDAO = new InMemoryUser();
+        new ClearService(authDAO, new InMemoryGame(), userDAO).clear();
+
+        service = new RegisterService(userDAO, authDAO);
     }
 
     @Test
@@ -26,7 +32,7 @@ public class RegisterServiceTest {
 
         assertNotNull(auth);
         assertEquals("tommy", auth.username());
-        assertNotNull(auth.token());
+        assertNotNull(auth.authToken());
     }
 
     @Test

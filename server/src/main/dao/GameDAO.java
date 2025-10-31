@@ -1,6 +1,5 @@
 package dao;
 
-import dataaccess.InMemoryDataAccess;
 import model.GameData;
 
 import java.util.List;

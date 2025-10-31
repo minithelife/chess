@@ -1,11 +1,8 @@
 package handler;
 
 public class Message {
-    public String message;  // must be public for Gson
+    public String message;
 
-    public Message(String message) {
-        this.message = message;
-    }
-
-    public Message() {}  // default constructor
+    public Message(String message) { this.message = message; }
+    public Message() {}
 }

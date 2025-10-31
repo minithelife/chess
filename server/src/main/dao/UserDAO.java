@@ -1,6 +1,5 @@
 package dao;
 
-import dataaccess.InMemoryDataAccess;
 import model.UserData;
 
 public class UserDAO extends DAO {

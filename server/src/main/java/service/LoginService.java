@@ -1,7 +1,7 @@
 package service;
 
-import dao.AuthDAO;
-import dao.UserDAO;
+import dataaccess.AuthDAO;
+import dataaccess.UserDAO;
 import handler.exceptions.BadRequestException;
 import handler.exceptions.UnauthorizedException;
 import model.AuthData;
@@ -9,10 +9,15 @@ import model.UserData;
 
 import java.util.UUID;
 
-public class LoginService extends Service {
+public class LoginService {
 
-//    private final UserDAO userDAO = new UserDAO();
-//    private final AuthDAO authDAO = new AuthDAO();
+    private final UserDAO userDAO;
+    private final AuthDAO authDAO;
+
+    public LoginService(UserDAO userDAO, AuthDAO authDAO) {
+        this.userDAO = userDAO;
+        this.authDAO = authDAO;
+    }
 
     public AuthData login(String username, String password) {
         if (username == null || password == null) {

@@ -1,6 +1,5 @@
 package dao;
 
-import dataaccess.InMemoryDataAccess;
 import model.AuthData;
 
 public class AuthDAO extends DAO {

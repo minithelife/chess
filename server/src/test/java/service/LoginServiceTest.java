@@ -6,18 +6,25 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import handler.exceptions.BadRequestException;
 import handler.exceptions.UnauthorizedException;
+import dataaccess.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class LoginServiceTest {
 
     private LoginService service;
+    private AuthDAO authDAO;
+    private UserDAO userDAO;
 
     @BeforeEach
     public void setup() {
-        service = new LoginService();
-        new ClearService().clear();
-        new RegisterService().register(new UserData("tommy", "pass123", "tommy@email.com"));
+        authDAO = new InMemoryAuth();
+        userDAO = new InMemoryUser();
+        new ClearService(authDAO, new InMemoryGame(), userDAO).clear();
+
+        service = new LoginService(userDAO, authDAO);
+        new RegisterService(userDAO, authDAO)
+                .register(new UserData("tommy", "pass123", "tommy@email.com"));
     }
 
     @Test
@@ -25,6 +32,7 @@ public class LoginServiceTest {
         AuthData auth = service.login("tommy", "pass123");
         assertNotNull(auth);
         assertEquals("tommy", auth.username());
+        assertNotNull(auth.authToken());
     }
 
     @Test

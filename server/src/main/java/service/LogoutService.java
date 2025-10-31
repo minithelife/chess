@@ -1,16 +1,20 @@
 package service;
 
-import dao.AuthDAO;
+import dataaccess.AuthDAO;
 import handler.exceptions.UnauthorizedException;
 
-public class LogoutService extends Service {
+public class LogoutService {
 
-//    private final AuthDAO authDAO = new AuthDAO();
+    private final AuthDAO authDAO;
+
+    public LogoutService(AuthDAO authDAO) {
+        this.authDAO = authDAO;
+    }
 
     public void logout(String token) {
         if (token == null || authDAO.getAuth(token) == null) {
             throw new UnauthorizedException("unauthorized");
         }
-        authDAO.deleteAuth(token); // remove only the specific token
+        authDAO.deleteAuth(token);
     }
 }

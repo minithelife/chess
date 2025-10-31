@@ -1,43 +1,71 @@
 package server;
 
-import io.javalin.Javalin;
+import com.google.gson.Gson;
+import dataaccess.*;
 import handler.*;
-import handler.exceptions.*;
+import service.*;
+
+import io.javalin.Javalin;
 
 public class Server {
 
-    private final Javalin javalin;
+    private Javalin app;
 
-    public Server() {
-        javalin = Javalin.create(config -> config.staticFiles.add("web"));
+    // Run the server on the given port
+    public int run(int port) {
+        // Initialize DAOs
+        AuthDAO authDAO = new InMemoryAuth();
+        UserDAO userDAO = new InMemoryUser();
+        GameDAO gameDAO = new InMemoryGame();
 
-        // Handlers
-        ClearHandler clear = new ClearHandler();
-        RegisterHandler register = new RegisterHandler();
-        LoginHandler login = new LoginHandler();
-        LogoutHandler logout = new LogoutHandler();
-        GameHandler game = new GameHandler();
+        // Initialize Services
+        ClearService clearService = new ClearService(authDAO, gameDAO, userDAO);
+        RegisterService registerService = new RegisterService(userDAO, authDAO);
+        LoginService loginService = new LoginService(userDAO, authDAO);
+        LogoutService logoutService = new LogoutService(authDAO);
+        GameService gameService = new GameService(authDAO, gameDAO, userDAO);
 
-        // Register endpoints
-        javalin.delete("/db", clear::clear);
-        javalin.post("/user", register::register);
-        javalin.post("/session", login::login);
-        javalin.delete("/session", logout::logout);
-        javalin.get("/game", game::listGames);
-        javalin.post("/game", game::createGame);
-        javalin.put("/game", game::joinGame);
-
-        // Register exception handling
+        // Initialize Handlers
+        ClearHandler clearHandler = new ClearHandler(clearService);
+        RegisterHandler registerHandler = new RegisterHandler(registerService);
+        LoginHandler loginHandler = new LoginHandler(loginService);
+        LogoutHandler logoutHandler = new LogoutHandler(logoutService);
+        GameHandler gameHandler = new GameHandler(gameService);
         ExceptionHandler exceptionHandler = new ExceptionHandler();
-        exceptionHandler.register(javalin); // handles 400, 401, 403, and 500
+
+        // Create Javalin app
+        app = Javalin.create(config -> config.staticFiles.add("web"));
+//        // Set default content type for all responses
+//        app.before(ctx -> ctx.contentType("application/json"));
+
+        // Register global exception handler
+        exceptionHandler.register(app);
+
+        // Endpoints
+        app.delete("/db", clearHandler::clear);
+        app.post("/user", registerHandler::register);
+        app.post("/session", loginHandler::login);
+        app.delete("/session", logoutHandler::logout);
+        app.get("/game", gameHandler::listGames);
+        app.post("/game", gameHandler::createGame);
+        app.put("/game", gameHandler::joinGame);
+
+        System.out.println("Server running on http://localhost:" + port);
+
+        app.start(port);
+
+        return app.port();
     }
 
-    public int run(int desiredPort) {
-        javalin.start(desiredPort);
-        return javalin.port();
-    }
-
+    // Stop the server
     public void stop() {
-        javalin.stop();
+        if (app != null) {
+            app.stop();
+        }
     }
+
+    // Optional: keep main for quick testing
+//    public static void main(String[] args) {
+//        new Server().run(7000);
+//    }
 }

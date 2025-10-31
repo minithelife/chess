@@ -7,13 +7,18 @@ import model.UserData;
 import service.LoginService;
 
 public class LoginHandler {
+
     private final Gson gson = new Gson();
-    private final LoginService service = new LoginService();
+    private final LoginService service;
+
+    public LoginHandler(LoginService service) {
+        this.service = service;
+    }
 
     public void login(Context ctx) {
         UserData request = gson.fromJson(ctx.body(), UserData.class);
-        AuthData auth = service.login(request.username(), request.password()); // may throw BadRequestException or UnauthorizedException
+        AuthData auth = service.login(request.username(), request.password());
         ctx.status(200);
-        ctx.json(auth);
+        ctx.result(gson.toJson(auth));
     }
 }

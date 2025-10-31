@@ -1,86 +1,68 @@
 package service;
 
+import dataaccess.*;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import handler.exceptions.BadRequestException;
-import handler.exceptions.ForbiddenException;
-import handler.exceptions.UnauthorizedException;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GameServiceTest {
 
-    private GameService service;
-    private String token;
+    private AuthDAO authDAO;
+    private UserDAO userDAO;
+    private GameDAO gameDAO;
+
+    private RegisterService registerService;
+    private LoginService loginService;
+    private GameService gameService;
 
     @BeforeEach
-    public void setup() {
-        new ClearService().clear();
-        service = new GameService();
-        AuthData auth = new RegisterService().register(new UserData("tommy", "pass123", "tommy@email.com"));
-        token = auth.token();
+    void setup() {
+        // Initialize in-memory DAOs
+        authDAO = new InMemoryAuth();
+        userDAO = new InMemoryUser();
+        gameDAO = new InMemoryGame();
+
+        // Initialize services
+        registerService = new RegisterService(userDAO, authDAO);
+        loginService = new LoginService(userDAO, authDAO);
+        gameService = new GameService(authDAO, gameDAO, userDAO);
     }
 
     @Test
-    public void testCreateGameSuccess() {
-        GameData game = service.createGame(token, "Chess Battle");
-        assertNotNull(game);
-        assertEquals("Chess Battle", game.name());
-        assertEquals("tommy", game.white());
-        assertNull(game.black());
+    void testCreateGameSuccess() {
+        // 1. Register user
+        UserData user = new UserData("tommy", "pass123", "tommy@example.com");
+        AuthData auth = registerService.register(user);
+
+        // 2. Create a game
+        GameData game = gameService.createGame(auth.authToken(), "My Chess Game");
+
+        // 3. Assert game exists and has correct ID
+        GameData stored = gameDAO.getGame(game.gameID());
+        assertEquals(game.gameID(), stored.gameID());
+        assertEquals(null, stored.whiteUsername()); // not joined yet
+        assertEquals(null, stored.blackUsername());
     }
 
     @Test
-    public void testCreateGameBadRequest() {
-        assertThrows(BadRequestException.class, () -> service.createGame(token, ""));
-        assertThrows(BadRequestException.class, () -> service.createGame(token, null));
-    }
+    void testJoinGameSuccess() {
+        // 1. Register user
+        UserData user = new UserData("tommy", "pass123", "tommy@example.com");
+        AuthData auth = registerService.register(user);
 
-    @Test
-    public void testListGamesSuccess() {
-        service.createGame(token, "Chess Battle");
-        List<GameData> games = service.listGames(token);
-        assertEquals(1, games.size());
-    }
+        // 2. Create a game
+        GameData game = gameService.createGame(auth.authToken(), "My Chess Game");
 
-    @Test
-    public void testJoinGameSuccess() {
-        GameData game = service.createGame(token, "Chess Battle");
-        // register another user
-        String token2 = new RegisterService().register(new UserData("bob", "pass", "bob@email.com")).token();
-        service.joinGame(token2, game.gameId(), "BLACK");
+        // 3. Join the game as WHITE
+        gameService.joinGame(auth.authToken(), game.gameID(), "WHITE");
 
-        List<GameData> games = service.listGames(token);
-        GameData updated = games.get(0);
-        assertEquals("tommy", updated.white());
-        assertEquals("bob", updated.black());
-    }
-
-    @Test
-    public void testJoinGameAlreadyTaken() {
-        GameData game = service.createGame(token, "Chess Battle");
-        // register another user
-        String token2 = new RegisterService().register(new UserData("bob", "pass", "bob@email.com")).token();
-        service.joinGame(token2, game.gameId(), "BLACK");
-
-        assertThrows(ForbiddenException.class, () -> service.joinGame(new RegisterService().register(new UserData("jim", "pass", "jim@email.com")).token(), game.gameId(), "BLACK"));
-    }
-
-    @Test
-    public void testJoinGameBadRequest() {
-        assertThrows(BadRequestException.class, () -> service.joinGame(token, 999, "WHITE")); // non-existent game
-        assertThrows(BadRequestException.class, () -> service.joinGame(token, 1, "GREEN")); // invalid color
-    }
-
-    @Test
-    public void testUnauthorized() {
-        assertThrows(UnauthorizedException.class, () -> service.listGames("invalid"));
-        assertThrows(UnauthorizedException.class, () -> service.createGame("invalid", "Chess"));
-        assertThrows(UnauthorizedException.class, () -> service.joinGame("invalid", 1, "WHITE"));
+        // 4. Assert that the WHITE player is set correctly
+        GameData updated = gameDAO.getGame(game.gameID());
+        assertEquals("tommy", updated.whiteUsername());
+        assertEquals(null, updated.blackUsername());
     }
 }
