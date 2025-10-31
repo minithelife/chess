@@ -97,42 +97,29 @@ public class ChessGame {
      * Checks if a team is in checkmate.
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        if (!isInCheck(teamColor)) return false;
+        return isInCheck(teamColor) && !hasAnyLegalMoves(teamColor);
+    }
 
-        // if no legal moves exist, it's checkmate
-        for (int row = 1; row <= 8; row++) {
-            for (int col = 1; col <= 8; col++) {
-                ChessPosition pos = new ChessPosition(row, col);
-                ChessPiece piece = board.getPiece(pos);
-                if (piece != null && piece.getTeamColor() == teamColor) {
-                    if (!validMoves(pos).isEmpty()) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
+    public boolean isInStalemate(TeamColor teamColor) {
+        return !isInCheck(teamColor) && !hasAnyLegalMoves(teamColor);
     }
 
     /**
-     * Checks if a team is in stalemate.
+     * Helper: checks if the given team has at least one valid move.
      */
-    public boolean isInStalemate(TeamColor teamColor) {
-        if (isInCheck(teamColor)) return false;
-
-        // if no legal moves but not in check, stalemate
+    private boolean hasAnyLegalMoves(TeamColor teamColor) {
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
                 ChessPosition pos = new ChessPosition(row, col);
                 ChessPiece piece = board.getPiece(pos);
                 if (piece != null && piece.getTeamColor() == teamColor) {
                     if (!validMoves(pos).isEmpty()) {
-                        return false;
+                        return true;
                     }
                 }
             }
         }
-        return true;
+        return false;
     }
 
     // ----------------- Helper Methods -----------------

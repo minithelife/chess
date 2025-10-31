@@ -8,7 +8,6 @@ import server.Server;
 
 import java.net.HttpURLConnection;
 import java.util.*;
-
 /**
  6 unit tests for all my files in service, one positive and one negative test. authResult, game .
  Clear	Clears the database. Removes all users, games, and authTokens. (this doesn't need a negative test, but needs a positive test.)
@@ -471,7 +470,6 @@ public class StandardAPITests {
     }
 
     // ### HELPER ASSERTIONS ###
-
     private void assertHttpOk(TestResult result) {
         Assertions.assertEquals(HttpURLConnection.HTTP_OK, serverFacade.getStatusCode(),
                 "Server response code was not 200 OK (message: %s)".formatted(result.getMessage()));
@@ -479,19 +477,15 @@ public class StandardAPITests {
                         result.getMessage().toLowerCase(Locale.ROOT).contains("error"),
                 "Result returned an error message");
     }
-
     private void assertHttpBadRequest(TestResult result) {
         assertHttpError(result, HttpURLConnection.HTTP_BAD_REQUEST, "Bad Request");
     }
-
     private void assertHttpUnauthorized(TestResult result) {
         assertHttpError(result, HttpURLConnection.HTTP_UNAUTHORIZED, "Unauthorized");
     }
-
     private void assertHttpForbidden(TestResult result) {
         assertHttpError(result, HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
     }
-
     private void assertHttpError(TestResult result, int statusCode, String message) {
         Assertions.assertEquals(statusCode, serverFacade.getStatusCode(),
                 "Server response code was not %d %s (message: %s)".formatted(statusCode, message, result.getMessage()));
@@ -499,10 +493,8 @@ public class StandardAPITests {
         Assertions.assertTrue(result.getMessage().toLowerCase(Locale.ROOT).contains("error"),
                 "Error message didn't contain the word \"Error\"");
     }
-
     private void assertAuthFieldsMissing(TestAuthResult result) {
         Assertions.assertNull(result.getUsername(), "Response incorrectly returned username");
         Assertions.assertNull(result.getAuthToken(), "Response incorrectly return authentication String");
     }
-
 }
