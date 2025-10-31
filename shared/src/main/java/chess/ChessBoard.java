@@ -50,15 +50,6 @@ public class ChessBoard {
         return newBoard;
     }
 
-    public void movePiece(ChessMove move){
-        ChessPiece piece = getPiece(move.getStartPosition());
-        addPiece(move.getStartPosition(), null);
-        if(move.getPromotionPiece() != null){
-            addPiece(move.getEndPosition(), new ChessPiece(piece.getTeamColor(), piece.getPieceType()));
-        }else{
-            addPiece(move.getEndPosition(), null);
-        }
-    }
 
     /**
      * Sets the board to the default starting board
