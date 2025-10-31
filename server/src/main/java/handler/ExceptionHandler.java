@@ -8,25 +8,18 @@ import io.javalin.Javalin;
 public class ExceptionHandler {
 
     public void register(Javalin app) {
-        app.exception(BadRequestException.class, (e, ctx) -> {
-            ctx.json(new Message("Error: " + e.getMessage()));
-            ctx.status(400);
-        });
-
-        app.exception(UnauthorizedException.class, (e, ctx) -> {
-            ctx.json(new Message("Error: " + e.getMessage()));
-            ctx.status(401);
-        });
-
-        app.exception(ForbiddenException.class, (e, ctx) -> {
-            ctx.json(new Message("Error: " + e.getMessage()));
-            ctx.status(403);
-        });
-
         app.exception(Exception.class, (e, ctx) -> {
-            System.out.println("exception500 handled");
             ctx.json(new Message("Error: " + e.getMessage()));
-            ctx.status(500);
+            ctx.status(getStatusCode(e));
         });
+    }
+
+    private int getStatusCode(Exception e) {
+        return switch(e){
+            case BadRequestException ignored -> 400;
+            case UnauthorizedException ignored -> 401;
+            case ForbiddenException ignored -> 403;
+            default -> 500;
+        };
     }
 }
