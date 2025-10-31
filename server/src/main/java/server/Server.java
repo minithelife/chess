@@ -35,8 +35,6 @@ public class Server {
 
         // Create Javalin app
         app = Javalin.create(config -> config.staticFiles.add("web"));
-//        // Set default content type for all responses
-//        app.before(ctx -> ctx.contentType("application/json"));
 
         // Register global exception handler
         exceptionHandler.register(app);
@@ -64,8 +62,5 @@ public class Server {
         }
     }
 
-    // Optional: keep main for quick testing
-//    public static void main(String[] args) {
-//        new Server().run(7000);
-//    }
+
 }
