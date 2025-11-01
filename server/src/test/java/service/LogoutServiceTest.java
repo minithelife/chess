@@ -1,5 +1,7 @@
 package service;
 
+import handler.exceptions.BadRequestException;
+import handler.exceptions.ForbiddenException;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +18,7 @@ public class LogoutServiceTest {
     private String token;
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws ForbiddenException, BadRequestException {
         authDAO = new InMemoryAuth();
         userDAO = new InMemoryUser();
         new ClearService(authDAO, new InMemoryGame(), userDAO).clear();
@@ -29,7 +31,7 @@ public class LogoutServiceTest {
     }
 
     @Test
-    public void testLogoutSuccess() {
+    public void testLogoutSuccess() throws UnauthorizedException {
         service.logout(token);
         assertThrows(UnauthorizedException.class, () -> service.logout(token));
     }

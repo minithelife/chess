@@ -1,6 +1,9 @@
 package service;
 
 import dataaccess.*;
+import handler.exceptions.BadRequestException;
+import handler.exceptions.ForbiddenException;
+import handler.exceptions.UnauthorizedException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -33,7 +36,7 @@ public class GameServiceTest {
     }
 
     @Test
-    void testCreateGameSuccess() {
+    void testCreateGameSuccess() throws ForbiddenException, BadRequestException, UnauthorizedException {
         // 1. Register user
         UserData user = new UserData("tommy", "pass123", "tommy@example.com");
         AuthData auth = registerService.register(user);
@@ -49,7 +52,7 @@ public class GameServiceTest {
     }
 
     @Test
-    void testJoinGameSuccess() {
+    void testJoinGameSuccess() throws ForbiddenException, BadRequestException, UnauthorizedException {
         // 1. Register user
         UserData user = new UserData("tommy", "pass123", "tommy@example.com");
         AuthData auth = registerService.register(user);

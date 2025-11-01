@@ -26,7 +26,7 @@ public class RegisterServiceTest {
     }
 
     @Test
-    public void testRegisterSuccess() {
+    public void testRegisterSuccess() throws ForbiddenException, BadRequestException {
         UserData user = new UserData("tommy", "pass123", "tommy@email.com");
         AuthData auth = service.register(user);
 
@@ -42,7 +42,7 @@ public class RegisterServiceTest {
     }
 
     @Test
-    public void testRegisterDuplicateUsername() {
+    public void testRegisterDuplicateUsername() throws ForbiddenException, BadRequestException {
         UserData user = new UserData("tommy", "pass123", "tommy@email.com");
         service.register(user);
 

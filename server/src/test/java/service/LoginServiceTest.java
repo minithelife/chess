@@ -1,5 +1,6 @@
 package service;
 
+import handler.exceptions.ForbiddenException;
 import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +18,7 @@ public class LoginServiceTest {
     private UserDAO userDAO;
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws ForbiddenException, BadRequestException {
         authDAO = new InMemoryAuth();
         userDAO = new InMemoryUser();
         new ClearService(authDAO, new InMemoryGame(), userDAO).clear();
@@ -28,7 +29,7 @@ public class LoginServiceTest {
     }
 
     @Test
-    public void testLoginSuccess() {
+    public void testLoginSuccess() throws UnauthorizedException, BadRequestException {
         AuthData auth = service.login("tommy", "pass123");
         assertNotNull(auth);
         assertEquals("tommy", auth.username());
