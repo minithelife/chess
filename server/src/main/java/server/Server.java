@@ -36,9 +36,6 @@ public class Server {
         // Create Javalin app
         app = Javalin.create(config -> config.staticFiles.add("web"));
 
-        // Register global exception handler
-        exceptionHandler.register(app);
-
         // Endpoints
         app.delete("/db", clearHandler::clear);
         app.post("/user", registerHandler::register);
@@ -47,6 +44,9 @@ public class Server {
         app.get("/game", gameHandler::listGames);
         app.post("/game", gameHandler::createGame);
         app.put("/game", gameHandler::joinGame);
+
+        // Register global exception handler
+        exceptionHandler.register(app);
 
         System.out.println("Server running on http://localhost:" + port);
 
