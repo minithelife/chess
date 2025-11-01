@@ -11,7 +11,7 @@ public class LogoutService {
         this.authDAO = authDAO;
     }
 
-    public void logout(String token) {
+    public void logout(String token) throws UnauthorizedException {
         if (token == null || authDAO.getAuth(token) == null) {
             throw new UnauthorizedException("unauthorized");
         }

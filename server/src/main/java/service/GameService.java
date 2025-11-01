@@ -24,7 +24,7 @@ public class GameService {
     }
 
     /** Returns a list of all games, only if authToken is valid */
-    public List<GameData> listGames(String authToken) {
+    public List<GameData> listGames(String authToken) throws UnauthorizedException {
         var auth = authDAO.getAuth(authToken);
         if (auth == null) {
             throw new UnauthorizedException("unauthorized");
@@ -33,7 +33,7 @@ public class GameService {
     }
 
     /** Creates a new game and returns it */
-    public GameData createGame(String authToken, String gameName) {
+    public GameData createGame(String authToken, String gameName) throws BadRequestException, UnauthorizedException {
         var auth = authDAO.getAuth(authToken);
         if (auth == null) {
             throw new UnauthorizedException("unauthorized");
@@ -50,7 +50,7 @@ public class GameService {
     }
 
     /** Joins a player to a game in the requested color */
-    public void joinGame(String authToken, int gameId, String playerColor) {
+    public void joinGame(String authToken, int gameId, String playerColor) throws UnauthorizedException, BadRequestException, ForbiddenException {
         var auth = authDAO.getAuth(authToken);
         if (auth == null) {
             throw new UnauthorizedException("unauthorized");

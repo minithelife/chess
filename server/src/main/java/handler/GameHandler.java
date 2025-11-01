@@ -1,6 +1,8 @@
 package handler;
 
 import com.google.gson.Gson;
+import handler.exceptions.ForbiddenException;
+import handler.exceptions.UnauthorizedException;
 import io.javalin.http.Context;
 import model.GameData;
 import service.GameService;
@@ -19,7 +21,7 @@ public class GameHandler {
     }
 
     /** List all games for a user */
-    public void listGames(Context ctx) {
+    public void listGames(Context ctx) throws BadRequestException, UnauthorizedException {
         String authToken = ctx.header("authorization");
         if (authToken == null || authToken.isEmpty()) {
             throw new BadRequestException("Missing authorization header");
@@ -31,7 +33,7 @@ public class GameHandler {
     }
 
     /** Create a new game */
-    public void createGame(Context ctx) {
+    public void createGame(Context ctx) throws BadRequestException, UnauthorizedException {
         String authToken = ctx.header("authorization");
         if (authToken == null || authToken.isEmpty()) {
             throw new BadRequestException("Missing authorization header");
@@ -56,7 +58,7 @@ public class GameHandler {
     }
 
     /** Join an existing game as WHITE or BLACK */
-    public void joinGame(Context ctx) {
+    public void joinGame(Context ctx) throws BadRequestException, ForbiddenException, UnauthorizedException {
         String authToken = ctx.header("authorization");
         if (authToken == null || authToken.isEmpty()) {
             throw new BadRequestException("Missing authorization header");

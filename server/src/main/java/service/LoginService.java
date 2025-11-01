@@ -19,7 +19,7 @@ public class LoginService {
         this.authDAO = authDAO;
     }
 
-    public AuthData login(String username, String password) {
+    public AuthData login(String username, String password) throws BadRequestException, UnauthorizedException {
         if (username == null || password == null) {
             throw new BadRequestException("bad request");
         }

@@ -1,5 +1,6 @@
 package handler;
 
+import handler.exceptions.UnauthorizedException;
 import io.javalin.http.Context;
 import service.LogoutService;
 
@@ -11,7 +12,7 @@ public class LogoutHandler {
         this.service = service;
     }
 
-    public void logout(Context ctx) {
+    public void logout(Context ctx) throws UnauthorizedException {
         String token = ctx.header("authorization");
         service.logout(token);
         ctx.status(200);

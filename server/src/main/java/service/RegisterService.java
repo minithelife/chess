@@ -19,7 +19,7 @@ public class RegisterService {
         this.authDAO = authDAO;
     }
 
-    public AuthData register(UserData user) {
+    public AuthData register(UserData user) throws ForbiddenException, BadRequestException {
         if (user.username() == null || user.password() == null || user.email() == null) {
             throw new BadRequestException("bad request");
         }
