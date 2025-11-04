@@ -1,6 +1,7 @@
 package handler;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import handler.exceptions.BadRequestException;
 import handler.exceptions.ForbiddenException;
 import io.javalin.http.Context;
@@ -17,7 +18,7 @@ public class RegisterHandler {
         this.service = service;
     }
 
-    public void register(Context ctx) throws ForbiddenException, BadRequestException {
+    public void register(Context ctx) throws ForbiddenException, BadRequestException, DataAccessException {
         UserData user = gson.fromJson(ctx.body(), UserData.class);
         AuthData auth = service.register(user);
         ctx.status(200);

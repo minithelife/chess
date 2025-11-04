@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
 import handler.exceptions.BadRequestException;
@@ -24,7 +25,7 @@ public class GameService {
     }
 
     /** Returns a list of all games, only if authToken is valid */
-    public List<GameData> listGames(String authToken) throws UnauthorizedException {
+    public List<GameData> listGames(String authToken) throws UnauthorizedException, DataAccessException {
         var auth = authDAO.getAuth(authToken);
         if (auth == null) {
             throw new UnauthorizedException("unauthorized");
@@ -33,7 +34,7 @@ public class GameService {
     }
 
     /** Creates a new game and returns it */
-    public GameData createGame(String authToken, String gameName) throws BadRequestException, UnauthorizedException {
+    public int createGame(String authToken, String gameName) throws BadRequestException, UnauthorizedException, DataAccessException {
         var auth = authDAO.getAuth(authToken);
         if (auth == null) {
             throw new UnauthorizedException("unauthorized");
@@ -42,15 +43,13 @@ public class GameService {
             throw new BadRequestException("bad request");
         }
 
-        int gameID = gameDAO.getNextGameId();
         ChessGame chessGame = new ChessGame(); // initialize a new chess game
-        GameData game = new GameData(gameID, gameName, null, null, chessGame);
-        gameDAO.createGame(game);
-        return game;
+        GameData game = new GameData(1, gameName, null, null, chessGame);
+        return gameDAO.createGame(game);
     }
 
     /** Joins a player to a game in the requested color */
-    public void joinGame(String authToken, int gameId, String playerColor) throws UnauthorizedException, BadRequestException, ForbiddenException {
+    public void joinGame(String authToken, int gameId, String playerColor) throws UnauthorizedException, BadRequestException, ForbiddenException, DataAccessException {
         var auth = authDAO.getAuth(authToken);
         if (auth == null) {
             throw new UnauthorizedException("unauthorized");

@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
 import handler.exceptions.UnauthorizedException;
 
 public class LogoutService {
@@ -11,7 +12,7 @@ public class LogoutService {
         this.authDAO = authDAO;
     }
 
-    public void logout(String token) throws UnauthorizedException {
+    public void logout(String token) throws UnauthorizedException, DataAccessException {
         if (token == null || authDAO.getAuth(token) == null) {
             throw new UnauthorizedException("unauthorized");
         }

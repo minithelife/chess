@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
 import dataaccess.UserDAO;
 import handler.exceptions.BadRequestException;
 import handler.exceptions.UnauthorizedException;
@@ -19,7 +20,7 @@ public class LoginService {
         this.authDAO = authDAO;
     }
 
-    public AuthData login(String username, String password) throws BadRequestException, UnauthorizedException {
+    public AuthData login(String username, String password) throws BadRequestException, UnauthorizedException, DataAccessException {
         if (username == null || password == null) {
             throw new BadRequestException("bad request");
         }

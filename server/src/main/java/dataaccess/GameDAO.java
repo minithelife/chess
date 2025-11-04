@@ -5,11 +5,10 @@ import java.util.List;
 
 public interface GameDAO {
 
-    void createGame(GameData game);
-    GameData getGame(int gameId);
-    void updateGame(GameData game);
-    List<GameData> getAllGames();
+    int createGame(GameData game) throws DataAccessException;
+    GameData getGame(int gameId) throws DataAccessException;
+    void updateGame(GameData game) throws DataAccessException;
+    List<GameData> getAllGames() throws DataAccessException;
 
-    int getNextGameId();
-    void clear();
+    void clear() throws DataAccessException;
 }

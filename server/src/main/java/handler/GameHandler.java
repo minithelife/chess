@@ -1,6 +1,7 @@
 package handler;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import handler.exceptions.ForbiddenException;
 import handler.exceptions.UnauthorizedException;
 import io.javalin.http.Context;
@@ -21,7 +22,7 @@ public class GameHandler {
     }
 
     /** List all games for a user */
-    public void listGames(Context ctx) throws BadRequestException, UnauthorizedException {
+    public void listGames(Context ctx) throws BadRequestException, UnauthorizedException, DataAccessException {
         String authToken = ctx.header("authorization");
         if (authToken == null || authToken.isEmpty()) {
             throw new BadRequestException("Missing authorization header");
@@ -33,7 +34,7 @@ public class GameHandler {
     }
 
     /** Create a new game */
-    public void createGame(Context ctx) throws BadRequestException, UnauthorizedException {
+    public void createGame(Context ctx) throws BadRequestException, UnauthorizedException, DataAccessException {
         String authToken = ctx.header("authorization");
         if (authToken == null || authToken.isEmpty()) {
             throw new BadRequestException("Missing authorization header");
@@ -51,14 +52,14 @@ public class GameHandler {
             throw new BadRequestException("gameName is required");
         }
 
-        GameData game = service.createGame(authToken, gameName);
+        int gameID = service.createGame(authToken, gameName);
 
         ctx.status(200);
-        ctx.result(gson.toJson(Map.of("gameID", game.gameID())));
+        ctx.result(gson.toJson(Map.of("gameID", gameID)));
     }
 
     /** Join an existing game as WHITE or BLACK */
-    public void joinGame(Context ctx) throws BadRequestException, ForbiddenException, UnauthorizedException {
+    public void joinGame(Context ctx) throws BadRequestException, ForbiddenException, UnauthorizedException, DataAccessException {
         String authToken = ctx.header("authorization");
         if (authToken == null || authToken.isEmpty()) {
             throw new BadRequestException("Missing authorization header");

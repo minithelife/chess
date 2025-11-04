@@ -13,8 +13,9 @@ public class InMemoryGame implements GameDAO {
     private int nextGameId = 1;
 
     @Override
-    public void createGame(GameData game) {
+    public int createGame(GameData game) {
         games.put(game.gameID(), game);
+        return nextGameId;
     }
 
     @Override
@@ -30,11 +31,6 @@ public class InMemoryGame implements GameDAO {
     @Override
     public List<GameData> getAllGames() {
         return new ArrayList<>(games.values());
-    }
-
-    @Override
-    public int getNextGameId() {
-        return nextGameId++;
     }
 
     @Override

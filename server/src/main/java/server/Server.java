@@ -13,10 +13,19 @@ public class Server {
 
     // Run the server on the given port
     public int run(int port) {
+
+        try {
+            DatabaseManager.createDatabase();
+            MySqlDatabaseInitializer.createTables();
+        } catch (DataAccessException e) {
+            System.err.println("Failed to initialize DB: " + e.getMessage());
+            System.exit(1);
+        }
+
         // Initialize DAOs
-        AuthDAO authDAO = new InMemoryAuth();
-        UserDAO userDAO = new InMemoryUser();
-        GameDAO gameDAO = new InMemoryGame();
+        AuthDAO authDAO = new MySqlAuthDAO();
+        UserDAO userDAO = new MySqlUserDAO();
+        GameDAO gameDAO = new MySqlGameDAO();
 
         // Initialize Services
         ClearService clearService = new ClearService(authDAO, gameDAO, userDAO);
