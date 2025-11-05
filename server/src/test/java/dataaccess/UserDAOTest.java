@@ -22,11 +22,18 @@ public class UserDAOTest {
 
     @Test
     @Order(1)
-    @DisplayName("Positive: create and get user")
-    void testCreateAndGetUserSuccess() throws DataAccessException {
+    @DisplayName("Positive: create user successfully")
+    void testCreateUserSuccess() throws DataAccessException {
         UserData user = new UserData("testUser", "pass123", "test@example.com");
         userDAO.createUser(user);
+        // No exception means success
+    }
 
+    @Test
+    @Order(2)
+    @DisplayName("Positive: get existing user successfully")
+    void testGetUserSuccess() throws DataAccessException {
+        // Make sure user exists (created in previous test)
         UserData fetched = userDAO.getUser("testUser");
         assertNotNull(fetched);
         assertEquals("testUser", fetched.username());
@@ -35,7 +42,7 @@ public class UserDAOTest {
     }
 
     @Test
-    @Order(2)
+    @Order(3)
     @DisplayName("Negative: create user with duplicate username throws exception")
     void testCreateUserDuplicateThrows() throws DataAccessException {
         UserData user = new UserData("dupUser", "pass", "dup@example.com");
@@ -49,7 +56,7 @@ public class UserDAOTest {
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     @DisplayName("Negative: get user that doesn't exist returns null")
     void testGetUserNotFound() throws DataAccessException {
         UserData fetched = userDAO.getUser("nonexistent");
@@ -57,7 +64,7 @@ public class UserDAOTest {
     }
 
     @Test
-    @Order(4)
+    @Order(5)
     @DisplayName("Positive: clear users removes all")
     void testClearUsers() throws DataAccessException {
         UserData user = new UserData("user1", "pass", "email@example.com");

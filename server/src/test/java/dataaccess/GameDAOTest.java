@@ -122,6 +122,18 @@ public class GameDAOTest {
 
     @Test
     @Order(7)
+    @DisplayName("Negative: get all games returns empty list when no games exist")
+    public void testGetAllGamesEmpty() throws DataAccessException {
+        // Make sure games table is empty
+        gameDao.clear();
+
+        List<GameData> games = gameDao.getAllGames();
+        Assertions.assertNotNull(games);
+        Assertions.assertTrue(games.isEmpty(), "Games list should be empty when no games exist");
+    }
+
+    @Test
+    @Order(8)
     @DisplayName("Clear games deletes all entries")
     public void testClearGames() throws DataAccessException {
         ChessGame chessGame = new ChessGame();
