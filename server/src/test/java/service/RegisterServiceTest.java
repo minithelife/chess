@@ -17,7 +17,7 @@ public class RegisterServiceTest {
     private AuthDAO authDAO;
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws DataAccessException {
         authDAO = new InMemoryAuth();
         userDAO = new InMemoryUser();
         new ClearService(authDAO, new InMemoryGame(), userDAO).clear();
@@ -26,7 +26,7 @@ public class RegisterServiceTest {
     }
 
     @Test
-    public void testRegisterSuccess() throws ForbiddenException, BadRequestException {
+    public void testRegisterSuccess() throws ForbiddenException, BadRequestException, DataAccessException {
         UserData user = new UserData("tommy", "pass123", "tommy@email.com");
         AuthData auth = service.register(user);
 
@@ -42,7 +42,7 @@ public class RegisterServiceTest {
     }
 
     @Test
-    public void testRegisterDuplicateUsername() throws ForbiddenException, BadRequestException {
+    public void testRegisterDuplicateUsername() throws ForbiddenException, BadRequestException, DataAccessException {
         UserData user = new UserData("tommy", "pass123", "tommy@email.com");
         service.register(user);
 

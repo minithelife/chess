@@ -10,6 +10,8 @@ import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.xml.crypto.Data;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GameServiceTest {
@@ -36,14 +38,14 @@ public class GameServiceTest {
     }
 
     @Test
-    void testCreateGameSuccess() throws ForbiddenException, BadRequestException, UnauthorizedException {
+    void testCreateGameSuccess() throws ForbiddenException, BadRequestException, UnauthorizedException, DataAccessException {
         UserData user = new UserData("tommy", "pass123", "tommy@example.com");
         AuthData auth = registerService.register(user);
 
-        GameData game = gameService.createGame(auth.authToken(), "My Chess Game");
+        int game = gameService.createGame(auth.authToken(), "My Chess Game");
 
-        GameData stored = gameDAO.getGame(game.gameID());
-        assertEquals(game.gameID(), stored.gameID());
+        GameData stored = gameDAO.getGame(game);
+        assertEquals(game, stored.gameID());
         assertNull(stored.whiteUsername());
         assertNull(stored.blackUsername());
     }
@@ -55,27 +57,27 @@ public class GameServiceTest {
     }
 
     @Test
-    void testJoinGameSuccess() throws ForbiddenException, BadRequestException, UnauthorizedException {
+    void testJoinGameSuccess() throws ForbiddenException, BadRequestException, UnauthorizedException, DataAccessException {
         UserData user = new UserData("tommy", "pass123", "tommy@example.com");
         AuthData auth = registerService.register(user);
 
-        GameData game = gameService.createGame(auth.authToken(), "My Chess Game");
+        int game = gameService.createGame(auth.authToken(), "My Chess Game");
 
-        gameService.joinGame(auth.authToken(), game.gameID(), "WHITE");
+        gameService.joinGame(auth.authToken(), game, "WHITE");
 
-        GameData updated = gameDAO.getGame(game.gameID());
+        GameData updated = gameDAO.getGame(game);
         assertEquals("tommy", updated.whiteUsername());
         assertNull(updated.blackUsername());
     }
 
     @Test
-    void testJoinGameInvalidColor() throws ForbiddenException, BadRequestException, UnauthorizedException {
+    void testJoinGameInvalidColor() throws ForbiddenException, BadRequestException, UnauthorizedException, DataAccessException {
         UserData user = new UserData("tommy", "pass123", "tommy@example.com");
         AuthData auth = registerService.register(user);
-        GameData game = gameService.createGame(auth.authToken(), "My Chess Game");
+        int game = gameService.createGame(auth.authToken(), "My Chess Game");
 
         assertThrows(BadRequestException.class, () ->
-                gameService.joinGame(auth.authToken(), game.gameID(), "PURPLE"));
+                gameService.joinGame(auth.authToken(), game, "PURPLE"));
     }
 
     @Test

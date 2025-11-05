@@ -18,7 +18,7 @@ public class LogoutServiceTest {
     private String token;
 
     @BeforeEach
-    public void setup() throws ForbiddenException, BadRequestException {
+    public void setup() throws ForbiddenException, BadRequestException, DataAccessException {
         authDAO = new InMemoryAuth();
         userDAO = new InMemoryUser();
         new ClearService(authDAO, new InMemoryGame(), userDAO).clear();
@@ -31,7 +31,7 @@ public class LogoutServiceTest {
     }
 
     @Test
-    public void testLogoutSuccess() throws UnauthorizedException {
+    public void testLogoutSuccess() throws UnauthorizedException, DataAccessException {
         service.logout(token);
         assertThrows(UnauthorizedException.class, () -> service.logout(token));
     }

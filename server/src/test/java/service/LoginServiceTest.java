@@ -18,7 +18,7 @@ public class LoginServiceTest {
     private UserDAO userDAO;
 
     @BeforeEach
-    public void setup() throws ForbiddenException, BadRequestException {
+    public void setup() throws ForbiddenException, BadRequestException, DataAccessException {
         authDAO = new InMemoryAuth();
         userDAO = new InMemoryUser();
         new ClearService(authDAO, new InMemoryGame(), userDAO).clear();
@@ -29,7 +29,7 @@ public class LoginServiceTest {
     }
 
     @Test
-    public void testLoginSuccess() throws UnauthorizedException, BadRequestException {
+    public void testLoginSuccess() throws UnauthorizedException, BadRequestException, DataAccessException, ForbiddenException {
         AuthData auth = service.login("tommy", "pass123");
         assertNotNull(auth);
         assertEquals("tommy", auth.username());
