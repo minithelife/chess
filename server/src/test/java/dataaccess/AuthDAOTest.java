@@ -1,16 +1,16 @@
 package dataaccess;
 
 import model.AuthData;
-import model.UserData;  // Assuming you have a UserData class
+import model.UserData;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class AuthDAOtest {
+public class AuthDAOTest {
 
     private static AuthDAO authDAO;
-    private static UserDAO userDAO;  // Assuming you have a UserDAO class
+    private static UserDAO userDAO;
 
     @BeforeAll
     static void setup() throws DataAccessException {
