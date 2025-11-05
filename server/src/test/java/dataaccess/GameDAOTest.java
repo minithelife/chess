@@ -35,14 +35,23 @@ public class GameDAOTest {
 
     @Test
     @Order(1)
-    @DisplayName("Create and get game success")
-    public void testCreateAndGetGameSuccess() throws DataAccessException {
+    @DisplayName("Create game success")
+    public void testCreateGameSuccess() throws DataAccessException {
         ChessGame chessGame = new ChessGame();
         GameData game = new GameData(0, "TestGame", "whitePlayer", "blackPlayer", chessGame);
 
         int id = gameDao.createGame(game);
         Assertions.assertTrue(id > 0, "Game ID should be positive");
+    }
 
+    @Test
+    @Order(2)
+    @DisplayName("Get game success")
+    public void testGetGameSuccess() throws DataAccessException {
+        ChessGame chessGame = new ChessGame();
+        GameData game = new GameData(0, "TestGame", "whitePlayer", "blackPlayer", chessGame);
+
+        int id = gameDao.createGame(game);
         GameData fetchedGame = gameDao.getGame(id);
         Assertions.assertNotNull(fetchedGame, "Fetched game should not be null");
         Assertions.assertEquals("TestGame", fetchedGame.gameName());
@@ -50,8 +59,9 @@ public class GameDAOTest {
         Assertions.assertEquals("blackPlayer", fetchedGame.blackUsername());
     }
 
+
     @Test
-    @Order(2)
+    @Order(3)
     @DisplayName("Create game fails with invalid usernames (foreign key violation)")
     public void testCreateGameFailInvalidUsernames() {
         ChessGame chessGame = new ChessGame();
@@ -64,7 +74,7 @@ public class GameDAOTest {
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     @DisplayName("Get game returns null for non-existent ID")
     public void testGetGameNotFound() throws DataAccessException {
         GameData game = gameDao.getGame(9999);  // assuming this ID does not exist
@@ -72,7 +82,7 @@ public class GameDAOTest {
     }
 
     @Test
-    @Order(4)
+    @Order(5)
     @DisplayName("Update game success")
     public void testUpdateGameSuccess() throws DataAccessException {
         ChessGame chessGame = new ChessGame();
@@ -91,7 +101,7 @@ public class GameDAOTest {
     }
 
     @Test
-    @Order(5)
+    @Order(6)
     @DisplayName("Update game fails with invalid ID")
     public void testUpdateGameFailInvalidId() throws DataAccessException {
         ChessGame chessGame = new ChessGame();
@@ -106,7 +116,7 @@ public class GameDAOTest {
     }
 
     @Test
-    @Order(6)
+    @Order(7)
     @DisplayName("Get all games returns all inserted games")
     public void testGetAllGames() throws DataAccessException {
         ChessGame chessGame = new ChessGame();
@@ -121,7 +131,7 @@ public class GameDAOTest {
     }
 
     @Test
-    @Order(7)
+    @Order(8)
     @DisplayName("Negative: get all games returns empty list when no games exist")
     public void testGetAllGamesEmpty() throws DataAccessException {
         // Make sure games table is empty
@@ -133,7 +143,7 @@ public class GameDAOTest {
     }
 
     @Test
-    @Order(8)
+    @Order(9)
     @DisplayName("Clear games deletes all entries")
     public void testClearGames() throws DataAccessException {
         ChessGame chessGame = new ChessGame();

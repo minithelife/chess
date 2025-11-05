@@ -16,16 +16,19 @@ public class UserDAOTest {
     }
 
     @BeforeEach
-    void clearUsers() throws DataAccessException {
+    void prepareDatabase() throws DataAccessException {
         userDAO.clear();
+        // Create testUser for retrieval tests
+        userDAO.createUser(new UserData("testUser", "pass123", "test@example.com"));
     }
 
     @Test
     @Order(1)
     @DisplayName("Positive: create user successfully")
     void testCreateUserSuccess() throws DataAccessException {
-        UserData user = new UserData("testUser", "pass123", "test@example.com");
-        userDAO.createUser(user);
+        // This user is already created in prepareDatabase,
+        // so for uniqueness test create a different user here
+        userDAO.createUser(new UserData("newUser", "newPass", "new@example.com"));
         // No exception means success
     }
 
@@ -33,7 +36,6 @@ public class UserDAOTest {
     @Order(2)
     @DisplayName("Positive: get existing user successfully")
     void testGetUserSuccess() throws DataAccessException {
-        // Make sure user exists (created in previous test)
         UserData fetched = userDAO.getUser("testUser");
         assertNotNull(fetched);
         assertEquals("testUser", fetched.username());
@@ -45,10 +47,7 @@ public class UserDAOTest {
     @Order(3)
     @DisplayName("Negative: create user with duplicate username throws exception")
     void testCreateUserDuplicateThrows() throws DataAccessException {
-        UserData user = new UserData("dupUser", "pass", "dup@example.com");
-        userDAO.createUser(user);
-
-        UserData duplicate = new UserData("dupUser", "pass2", "dup2@example.com");
+        UserData duplicate = new UserData("testUser", "pass2", "dup@example.com");
         DataAccessException ex = assertThrows(DataAccessException.class, () -> {
             userDAO.createUser(duplicate);
         });
@@ -67,11 +66,8 @@ public class UserDAOTest {
     @Order(5)
     @DisplayName("Positive: clear users removes all")
     void testClearUsers() throws DataAccessException {
-        UserData user = new UserData("user1", "pass", "email@example.com");
-        userDAO.createUser(user);
-
         userDAO.clear();
 
-        assertNull(userDAO.getUser("user1"));
+        assertNull(userDAO.getUser("testUser"));
     }
 }
