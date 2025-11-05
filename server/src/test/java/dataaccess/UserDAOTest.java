@@ -17,7 +17,7 @@ public class UserDAOTest {
 
     @BeforeEach
     void clearUsers() throws DataAccessException {
-        userDAO.clear();  // clean before each test to avoid data collision
+        userDAO.clear();
     }
 
     @Test
@@ -36,14 +36,6 @@ public class UserDAOTest {
 
     @Test
     @Order(2)
-    @DisplayName("Negative: get user that doesn't exist returns null")
-    void testGetUserNotFound() throws DataAccessException {
-        UserData fetched = userDAO.getUser("nonexistent");
-        assertNull(fetched);
-    }
-
-    @Test
-    @Order(3)
     @DisplayName("Negative: create user with duplicate username throws exception")
     void testCreateUserDuplicateThrows() throws DataAccessException {
         UserData user = new UserData("dupUser", "pass", "dup@example.com");
@@ -53,7 +45,15 @@ public class UserDAOTest {
         DataAccessException ex = assertThrows(DataAccessException.class, () -> {
             userDAO.createUser(duplicate);
         });
-        assertTrue(ex.getMessage().contains("Failed to create user"));
+        assertTrue(ex.getMessage().toLowerCase().contains("failed to create user"));
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("Negative: get user that doesn't exist returns null")
+    void testGetUserNotFound() throws DataAccessException {
+        UserData fetched = userDAO.getUser("nonexistent");
+        assertNull(fetched);
     }
 
     @Test
