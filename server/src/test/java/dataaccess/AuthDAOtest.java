@@ -1,6 +1,7 @@
 package dataaccess;
 
 import model.AuthData;
+import model.UserData;  // Assuming you have a UserData class
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -9,10 +10,18 @@ import static org.junit.jupiter.api.Assertions.*;
 public class AuthDAOtest {
 
     private static AuthDAO authDAO;
+    private static UserDAO userDAO;  // Assuming you have a UserDAO class
 
     @BeforeAll
-    static void setup() {
+    static void setup() throws DataAccessException {
         authDAO = new MySqlAuthDAO();
+        userDAO = new MySqlUserDAO();  // initialize user DAO
+
+        // Clear and create test users needed for auth tokens
+        userDAO.clear();
+        userDAO.createUser(new UserData("user1", "password", "user1@example.com"));
+        userDAO.createUser(new UserData("userDel", "password", "userdel@example.com"));
+        userDAO.createUser(new UserData("userClear", "password", "userclear@example.com"));
     }
 
     @BeforeEach
