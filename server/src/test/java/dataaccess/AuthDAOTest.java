@@ -59,6 +59,19 @@ public class AuthDAOTest {
 
     @Test
     @Order(3)
+    @DisplayName("Positive: get auth token returns valid AuthData")
+    void testGetAuthSuccess() throws DataAccessException {
+        AuthData auth = new AuthData("token123", "user1");
+        authDAO.createAuth(auth);
+
+        AuthData fetched = authDAO.getAuth("token123");
+        assertNotNull(fetched);
+        assertEquals("token123", fetched.authToken());
+        assertEquals("user1", fetched.username());
+    }
+
+    @Test
+    @Order(4)
     @DisplayName("Negative: get auth token that doesn't exist returns null")
     void testGetAuthNotFound() throws DataAccessException {
         AuthData fetched = authDAO.getAuth("nonexistent");
@@ -66,7 +79,7 @@ public class AuthDAOTest {
     }
 
     @Test
-    @Order(4)
+    @Order(5)
     @DisplayName("Positive: delete auth token")
     void testDeleteAuthSuccess() throws DataAccessException {
         AuthData auth = new AuthData("tokenToDelete", "userDel");
@@ -78,14 +91,14 @@ public class AuthDAOTest {
     }
 
     @Test
-    @Order(5)
+    @Order(6)
     @DisplayName("Negative: delete auth token that doesn't exist does not throw")
     void testDeleteAuthNonExistent() {
         assertDoesNotThrow(() -> authDAO.deleteAuth("nonexistentToken"));
     }
 
     @Test
-    @Order(6)
+    @Order(7)
     @DisplayName("Positive: clear auth tokens")
     void testClearAuth() throws DataAccessException {
         AuthData auth = new AuthData("tokenClear", "userClear");
