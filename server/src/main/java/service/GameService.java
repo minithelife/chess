@@ -49,7 +49,11 @@ public class GameService {
     }
 
     /** Joins a player to a game in the requested color */
-    public void joinGame(String authToken, int gameId, String playerColor) throws UnauthorizedException, BadRequestException, ForbiddenException, DataAccessException {
+    public void joinGame(
+            String authToken,
+            int gameId,
+            String playerColor
+    ) throws UnauthorizedException, BadRequestException, ForbiddenException, DataAccessException {
         var auth = authDAO.getAuth(authToken);
         if (auth == null) {
             throw new UnauthorizedException("unauthorized");
