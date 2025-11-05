@@ -28,32 +28,34 @@ public class AuthDAOTest {
         authDAO.clear();
     }
 
+    // Helper methods
+    private void createAuthToken(String token, String username) throws DataAccessException {
+        authDAO.createAuth(new AuthData(token, username));
+    }
+
+    private void assertAuthDataEquals(AuthData authData, String expectedToken, String expectedUser) {
+        assertNotNull(authData);
+        assertEquals(expectedToken, authData.authToken());
+        assertEquals(expectedUser, authData.username());
+    }
+
     @Test
     @Order(1)
     @DisplayName("Positive: create and get auth token")
     void testCreateAndGetAuthSuccess() throws DataAccessException {
-        AuthData auth = new AuthData("token123", "user1");
-        authDAO.createAuth(auth);
-
+        createAuthToken("token123", "user1");
         AuthData fetched = authDAO.getAuth("token123");
-        assertNotNull(fetched);
-        assertEquals("token123", fetched.authToken());
-        assertEquals("user1", fetched.username());
+        assertAuthDataEquals(fetched, "token123", "user1");
     }
 
     @Test
     @Order(2)
     @DisplayName("Negative: create auth with duplicate token throws exception")
     void testCreateAuthDuplicateTokenThrows() throws DataAccessException {
-        AuthData auth1 = new AuthData("tokenDup", "user1");
-        authDAO.createAuth(auth1);
-
-        AuthData auth2 = new AuthData("tokenDup", "user1");
-
+        createAuthToken("tokenDup", "user1");
         DataAccessException ex = assertThrows(DataAccessException.class, () -> {
-            authDAO.createAuth(auth2);
+            createAuthToken("tokenDup", "user1");
         });
-
         assertTrue(ex.getMessage().toLowerCase().contains("failed to create auth"));
     }
 
@@ -61,13 +63,9 @@ public class AuthDAOTest {
     @Order(3)
     @DisplayName("Positive: get auth token returns valid AuthData")
     void testGetAuthSuccess() throws DataAccessException {
-        AuthData auth = new AuthData("token123", "user1");
-        authDAO.createAuth(auth);
-
+        createAuthToken("token123", "user1");
         AuthData fetched = authDAO.getAuth("token123");
-        assertNotNull(fetched);
-        assertEquals("token123", fetched.authToken());
-        assertEquals("user1", fetched.username());
+        assertAuthDataEquals(fetched, "token123", "user1");
     }
 
     @Test
@@ -82,9 +80,7 @@ public class AuthDAOTest {
     @Order(5)
     @DisplayName("Positive: delete auth token")
     void testDeleteAuthSuccess() throws DataAccessException {
-        AuthData auth = new AuthData("tokenToDelete", "userDel");
-        authDAO.createAuth(auth);
-
+        createAuthToken("tokenToDelete", "userDel");
         authDAO.deleteAuth("tokenToDelete");
         AuthData fetched = authDAO.getAuth("tokenToDelete");
         assertNull(fetched);
@@ -101,11 +97,8 @@ public class AuthDAOTest {
     @Order(7)
     @DisplayName("Positive: clear auth tokens")
     void testClearAuth() throws DataAccessException {
-        AuthData auth = new AuthData("tokenClear", "userClear");
-        authDAO.createAuth(auth);
-
+        createAuthToken("tokenClear", "userClear");
         authDAO.clear();
-
         AuthData fetched = authDAO.getAuth("tokenClear");
         assertNull(fetched);
     }
