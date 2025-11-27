@@ -40,7 +40,9 @@ public class ServerFacade {
         if (code >= 200 && code < 300) {
             return res.body();
         }
-        else throw new Exception("Server error: " + code + " - " + res.body());
+        else {
+            throw new Exception("Server error: " + code + " - " + res.body());
+        }
     }
 
     // Clear DB (testing)

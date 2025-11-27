@@ -48,11 +48,6 @@ public class ServerFacadeTests {
                 facade.register(new RegisterRequest("bob", "pw", "b@b.com")));
     }
 
-//    @Test
-//    public void registerNegativeMissingFields() {
-//        Assertions.assertThrows(Exception.class, () ->
-//                facade.register(new RegisterRequest("", "", "")));
-//    }
 
     // ─────────────────────────────────────────────
     // LOGIN
@@ -199,10 +194,4 @@ public class ServerFacadeTests {
                 facade.getGame(1, "invalid"));
     }
 }
-//    @Test
-//    public void getGameNegativeBadGameId() throws Exception {
-//        var auth = facade.register(new RegisterRequest("mike", "pw", "m@m.com"));
-//        Assertions.assertThrows(Exception.class, () ->
-//                facade.getGame(9999, auth.authToken()));
-//    }
-//}
+

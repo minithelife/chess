@@ -15,7 +15,9 @@ public class BoardDrawer {
     public static void drawInitialBoard(boolean blackPerspective) {
         System.out.print(EscapeSequences.ERASE_SCREEN);
         if (!blackPerspective) drawWhitePerspective();
-        else drawBlackPerspective();
+        else {
+            drawBlackPerspective();
+        }
     }
 
     private static void drawWhitePerspective() {
@@ -55,42 +57,26 @@ public class BoardDrawer {
     }
 
     private static String pieceAt(int row, int col, boolean blackPerspective) {
-        // row 1 is the bottom from White's perspective (a1). We will return piece symbol for initial setup.
-        // White pieces on rows 1 (back rank) and 2 (pawns). Black on 7 and 8.
-        if (!blackPerspective) {
-            // White perspective: we want a1 bottom-left. row 1 is bottom.
-            if (row == 2) {
-                return EscapeSequences.WHITE_PAWN;
-            }
-            if (row == 7) {
-                return EscapeSequences.BLACK_PAWN;
-            }
-            if (row == 1) {
-                return WHITE_BACK_RANK[col - 1];
-            }
-            if (row == 8) {
-                return BLACK_BACK_RANK[col - 1];
-            }
-            return EscapeSequences.EMPTY;
-        } else {
-            // blackPerspective: invert the placement visually so that a1 is top-right.
-            // But we still want the same piece distribution: white pieces on rows 1 and 2 (relative).
-            // Because drawBlackPerspective flips the columns/rows, reuse same mapping:
-            if (row == 2) {
-                return EscapeSequences.WHITE_PAWN;
-            }
-            if (row == 7) {
-                return EscapeSequences.BLACK_PAWN;
-            }
-            if (row == 1) {
-                return WHITE_BACK_RANK[col - 1];
-            }
-            if (row == 8) {
-                return BLACK_BACK_RANK[col - 1];
-            }
-            return EscapeSequences.EMPTY;
+        // White pawns
+        if (row == 2) {
+            return EscapeSequences.WHITE_PAWN;
         }
+        // Black pawns
+        if (row == 7) {
+            return EscapeSequences.BLACK_PAWN;
+        }
+        // White back rank
+        if (row == 1) {
+            return WHITE_BACK_RANK[col - 1];
+        }
+        // Black back rank
+        if (row == 8) {
+            return BLACK_BACK_RANK[col - 1];
+        }
+        // Empty square
+        return EscapeSequences.EMPTY;
     }
+
 
     private static String squareBg(int row, int col) {
         // light squares when (row + col) % 2 == 0

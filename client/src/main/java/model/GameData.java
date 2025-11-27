@@ -18,7 +18,4 @@ public record GameData(
         return new GameData(gameID, gameName, whiteUsername, username, game);
     }
 
-    public GameData withGame(ChessGame newGame) {
-        return new GameData(gameID, gameName, whiteUsername, blackUsername, newGame);
-    }
 }
