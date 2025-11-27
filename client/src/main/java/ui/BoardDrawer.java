@@ -14,7 +14,9 @@ public class BoardDrawer {
 
     public static void drawInitialBoard(boolean blackPerspective) {
         System.out.print(EscapeSequences.ERASE_SCREEN);
-        if (!blackPerspective) drawWhitePerspective();
+        if (!blackPerspective) {
+            drawWhitePerspective();
+        }
         else {
             drawBlackPerspective();
         }
