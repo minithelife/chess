@@ -48,7 +48,9 @@ public class Client {
             String line = scanner.nextLine().trim();
             try {
                 result = eval(line);
-                if (!result.isBlank()) System.out.print(result);
+                if (!result.isBlank()) {
+                    System.out.print(result);
+                }
             } catch (Exception ex) {
                 System.out.println("Error: " + ex.getMessage());
             }
@@ -61,7 +63,9 @@ public class Client {
     }
 
     public String eval(String input) throws Exception {
-        if (input.isBlank()) return "";
+        if (input.isBlank()) {
+            return "";
+        }
         String[] tokens = input.split("\\s+");
         String cmd = tokens[0].toLowerCase();
         String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
@@ -83,7 +87,9 @@ public class Client {
 
     // ----- commands -----
     private String register(String... params) throws Exception {
-        if (params.length != 3) return "Usage: register <username> <password> <email>\n";
+        if (params.length != 3) {
+            return "Usage: register <username> <password> <email>\n";
+        }
         RegisterRequest req = new RegisterRequest(params[0], params[1], params[2]);
         AuthData auth = server.register(req);
         this.authToken = auth.authToken();
@@ -92,7 +98,9 @@ public class Client {
     }
 
     private String login(String... params) throws Exception {
-        if (params.length != 2) return "Usage: login <username> <password>\n";
+        if (params.length != 2) {
+            return "Usage: login <username> <password>\n";
+        }
         LoginRequest req = new LoginRequest(params[0], params[1]);
         AuthData auth = server.login(req);
         this.authToken = auth.authToken();
@@ -111,7 +119,9 @@ public class Client {
 
     private String createGame(String... params) throws Exception {
         assertSignedIn();
-        if (params.length < 1) return "Usage: createGame <name>\n";
+        if (params.length < 1) {
+            return "Usage: createGame <name>\n";
+        }
         String name = String.join(" ", params);
         var req = new CreateGameRequest(name);
         var res = server.createGame(authToken, req);
@@ -132,22 +142,30 @@ public class Client {
                     g.blackUsername() == null ? "-" : g.blackUsername()));
             i++;
         }
-        if (sb.isEmpty()) sb.append("No games.\n");
+        if (sb.isEmpty()) {
+            sb.append("No games.\n");
+        }
         return sb.toString();
     }
 
     private String play(String... params) throws Exception {
         assertSignedIn();
-        if (params.length < 1) return "Usage: play <list-number> (you will be prompted for color)\n";
+        if (params.length < 1) {
+            return "Usage: play <list-number> (you will be prompted for color)\n";
+        }
         int listNum;
         try { listNum = Integer.parseInt(params[0]); } catch (NumberFormatException e) {
             return "Invalid number. Run listGames first to see indexes.\n";
         }
-        if (!lastListed.containsKey(listNum)) return "Unknown game index - run listGames first.\n";
+        if (!lastListed.containsKey(listNum)) {
+            return "Unknown game index - run listGames first.\n";
+        }
         int gameId = lastListed.get(listNum);
         System.out.print("Color (white/black): ");
         String color = scanner.nextLine().trim().toUpperCase();
-        if (!color.equals("WHITE") && !color.equals("BLACK")) return "Invalid color. Choose 'white' or 'black'.\n";
+        if (!color.equals("WHITE") && !color.equals("BLACK")) {
+            return "Invalid color. Choose 'white' or 'black'.\n";
+        }
         server.joinGame(authToken, new JoinGameRequest(color, gameId));
         this.state = State.PLAYING;
         // fetch the game to get board and draw
@@ -158,12 +176,16 @@ public class Client {
 
     private String observe(String... params) throws Exception {
         assertSignedIn();
-        if (params.length != 1) return "Usage: observe <list-number>\n";
+        if (params.length != 1) {
+            return "Usage: observe <list-number>\n";
+        }
         int listNum;
         try { listNum = Integer.parseInt(params[0]); } catch (NumberFormatException e) {
             return "Invalid number. Run listGames first to see indexes.\n";
         }
-        if (!lastListed.containsKey(listNum)) return "Unknown game index - run listGames first.\n";
+        if (!lastListed.containsKey(listNum)) {
+            return "Unknown game index - run listGames first.\n";
+        }
         int gameId = lastListed.get(listNum);
         this.state = State.OBSERVING;
         GameData gd = server.getGame(gameId, authToken);
@@ -194,7 +216,9 @@ public class Client {
     }
 
     private void assertSignedIn() throws Exception {
-        if (state == State.SIGNEDOUT || authToken == null) throw new Exception("You must be logged in.");
+        if (state == State.SIGNEDOUT || authToken == null) {
+            throw new Exception("You must be logged in.");
+        }
     }
 
     private String help() {

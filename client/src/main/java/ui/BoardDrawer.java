@@ -59,19 +59,35 @@ public class BoardDrawer {
         // White pieces on rows 1 (back rank) and 2 (pawns). Black on 7 and 8.
         if (!blackPerspective) {
             // White perspective: we want a1 bottom-left. row 1 is bottom.
-            if (row == 2) return EscapeSequences.WHITE_PAWN;
-            if (row == 7) return EscapeSequences.BLACK_PAWN;
-            if (row == 1) return WHITE_BACK_RANK[col - 1];
-            if (row == 8) return BLACK_BACK_RANK[col - 1];
+            if (row == 2) {
+                return EscapeSequences.WHITE_PAWN;
+            }
+            if (row == 7) {
+                return EscapeSequences.BLACK_PAWN;
+            }
+            if (row == 1) {
+                return WHITE_BACK_RANK[col - 1];
+            }
+            if (row == 8) {
+                return BLACK_BACK_RANK[col - 1];
+            }
             return EscapeSequences.EMPTY;
         } else {
             // blackPerspective: invert the placement visually so that a1 is top-right.
             // But we still want the same piece distribution: white pieces on rows 1 and 2 (relative).
             // Because drawBlackPerspective flips the columns/rows, reuse same mapping:
-            if (row == 2) return EscapeSequences.WHITE_PAWN;
-            if (row == 7) return EscapeSequences.BLACK_PAWN;
-            if (row == 1) return WHITE_BACK_RANK[col - 1];
-            if (row == 8) return BLACK_BACK_RANK[col - 1];
+            if (row == 2) {
+                return EscapeSequences.WHITE_PAWN;
+            }
+            if (row == 7) {
+                return EscapeSequences.BLACK_PAWN;
+            }
+            if (row == 1) {
+                return WHITE_BACK_RANK[col - 1];
+            }
+            if (row == 8) {
+                return BLACK_BACK_RANK[col - 1];
+            }
             return EscapeSequences.EMPTY;
         }
     }

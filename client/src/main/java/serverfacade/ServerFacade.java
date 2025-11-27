@@ -37,7 +37,9 @@ public class ServerFacade {
     private String doRequest(HttpRequest request) throws Exception {
         HttpResponse<String> res = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         int code = res.statusCode();
-        if (code >= 200 && code < 300) return res.body();
+        if (code >= 200 && code < 300) {
+            return res.body();
+        }
         else throw new Exception("Server error: " + code + " - " + res.body());
     }
 
@@ -117,7 +119,9 @@ public class ServerFacade {
     public GameData getGame(int gameID, String authToken) throws Exception {
         var list = listGames(authToken);
         for (GameData g : list.games()) {
-            if (g.gameID() == gameID) return g;
+            if (g.gameID() == gameID) {
+                return g;
+            }
         }
         return null;
     }
