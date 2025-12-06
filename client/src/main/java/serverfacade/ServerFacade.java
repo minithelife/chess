@@ -40,9 +40,19 @@ public class ServerFacade {
         if (code >= 200 && code < 300) {
             return res.body();
         }
+
+
         else {
-            throw new Exception("Server error: " + code + " - " + res.body());
+            try {
+                JsonObject obj = JsonParser.parseString(res.body()).getAsJsonObject();
+                String msg = obj.has("message") ? obj.get("message").getAsString() : null;
+                if (msg != null) throw new Exception(msg);
+            } catch (JsonParseException ignored) {}
+
+            throw new Exception("HTTP " + code);
         }
+
+
     }
 
     // Clear DB (testing)

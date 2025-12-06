@@ -52,8 +52,9 @@ public class Client {
                     System.out.print(result);
                 }
             } catch (Exception ex) {
-                System.out.println("Error: " + ex.getMessage());
+                System.out.println(ex.getMessage());
             }
+
         }
         System.out.println("Goodbye.");
     }
@@ -125,7 +126,7 @@ public class Client {
         String name = String.join(" ", params);
         var req = new CreateGameRequest(name);
         var res = server.createGame(authToken, req);
-        return "Created game: " + name + " (id " + res.gameID() + ")\n";
+        return "Created game: " + name + "\n";
     }
 
     private String listGames() throws Exception {
@@ -171,9 +172,9 @@ public class Client {
         // fetch the game to get board and draw
         GameData gd = server.getGame(gameId, authToken);
         drawGame(gd, color.equals("BLACK"));
-        return "Joined game " + gameId + " as " + color + "\n";
+        return "Joined game as " + color + "\n";
     }
-
+s
     private String observe(String... params) throws Exception {
         assertSignedIn();
         if (params.length != 1) {
@@ -190,7 +191,7 @@ public class Client {
         this.state = State.OBSERVING;
         GameData gd = server.getGame(gameId, authToken);
         drawGame(gd, false); // observers see white perspective
-        return "Observing game " + gameId + "\n";
+        return "Observing game\n";
     }
 
     private String redraw() {
@@ -222,10 +223,16 @@ public class Client {
     }
 
     private String help() {
-        return """
+        if (state== State.SIGNEDOUT || authToken == null) {
+            return """
                 Commands:
                 - register <username> <password> <email>
                 - login <username> <password>
+                - quit
+                """;
+        }
+        return """
+                Commands:
                 - logout
                 - createGame <name>
                 - listGames

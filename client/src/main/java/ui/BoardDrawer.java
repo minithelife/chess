@@ -45,7 +45,7 @@ public class BoardDrawer {
         // row 1 up to 8 (so a1 top-left)
         for (int row = 1; row <= 8; row++) {
             StringBuilder line = new StringBuilder();
-            line.append(EscapeSequences.SET_TEXT_COLOR_WHITE).append(9 - row).append(" ").append(EscapeSequences.RESET_TEXT_COLOR);
+            line.append(EscapeSequences.SET_TEXT_COLOR_WHITE).append(row).append(" ").append(EscapeSequences.RESET_TEXT_COLOR);
             for (int col = 8; col >= 1; col--) {
                 int boardRow = row;
                 int boardCol = col;
@@ -81,8 +81,8 @@ public class BoardDrawer {
 
 
     private static String squareBg(int row, int col) {
-        // light squares when (row + col) % 2 == 0
-        boolean light = ((row + col) % 2 == 0);
+        // light squares when (row + col) % 2 == 1
+        boolean light = ((row + col) % 2 == 1);
         return light ? EscapeSequences.SET_BG_COLOR_WHITE : EscapeSequences.SET_BG_COLOR_DARK_GREY;
     }
 
