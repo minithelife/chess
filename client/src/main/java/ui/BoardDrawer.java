@@ -1,5 +1,7 @@
 package ui;
 
+import chess.*;
+
 public class BoardDrawer {
 
     // Unicode starting rows for white and black
@@ -86,11 +88,69 @@ public class BoardDrawer {
         return light ? EscapeSequences.SET_BG_COLOR_WHITE : EscapeSequences.SET_BG_COLOR_DARK_GREY;
     }
 
-    private static void printColumnLetters(boolean reversed) {
+    public static void printColumnLetters(boolean reversed) {
         if (!reversed) {
             System.out.println("   a  b  c  d  e  f  g  h");
         } else {
             System.out.println("   h  g  f  e  d  c  b  a");
         }
     }
+
+    public static void drawBoard(ChessGame game, boolean blackPerspective) {
+        if (game == null) {
+            System.out.println("No game to draw.");
+            return;
+        }
+
+        System.out.print(EscapeSequences.ERASE_SCREEN);
+
+        if (!blackPerspective) {
+            printColumnLetters(false);
+            for (int row = 8; row >= 1; row--) {
+                StringBuilder line = new StringBuilder();
+                line.append(EscapeSequences.SET_TEXT_COLOR_WHITE).append(row).append(" ").append(EscapeSequences.RESET_TEXT_COLOR);
+                for (int col = 1; col <= 8; col++) {
+                    ChessPosition pos = new ChessPosition(row, col);
+                    String piece = pieceSymbolAt(game, pos);
+                    String bg = squareBg(row, col);
+                    line.append(bg).append(piece).append(EscapeSequences.RESET_BG_COLOR);
+                }
+                System.out.println(line);
+            }
+            printColumnLetters(false);
+        } else {
+            printColumnLetters(true);
+            for (int row = 1; row <= 8; row++) {
+                StringBuilder line = new StringBuilder();
+                line.append(EscapeSequences.SET_TEXT_COLOR_WHITE).append(row).append(" ").append(EscapeSequences.RESET_TEXT_COLOR);
+                for (int col = 8; col >= 1; col--) {
+                    ChessPosition pos = new ChessPosition(row, col);
+                    String piece = pieceSymbolAt(game, pos);
+                    String bg = squareBg(row, col);
+                    line.append(bg).append(piece).append(EscapeSequences.RESET_BG_COLOR);
+                }
+                System.out.println(line);
+            }
+            printColumnLetters(true);
+        }
+    }
+
+    /** Returns the Unicode symbol for a piece at a given position */
+    private static String pieceSymbolAt(ChessGame game, ChessPosition pos) {
+        ChessPiece piece = game.getBoard().getPiece(pos);
+        if (piece == null) return EscapeSequences.EMPTY;
+
+        switch (piece.getPieceType()) {
+            case PAWN:   return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_PAWN : EscapeSequences.BLACK_PAWN;
+            case ROOK:   return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_ROOK : EscapeSequences.BLACK_ROOK;
+            case KNIGHT: return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_KNIGHT : EscapeSequences.BLACK_KNIGHT;
+            case BISHOP: return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_BISHOP : EscapeSequences.BLACK_BISHOP;
+            case QUEEN:  return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_QUEEN : EscapeSequences.BLACK_QUEEN;
+            case KING:   return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_KING : EscapeSequences.BLACK_KING;
+            default:     return EscapeSequences.EMPTY;
+        }
+    }
+
+
+
 }

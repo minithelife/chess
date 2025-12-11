@@ -13,12 +13,15 @@ public class ChessGame {
     private ChessBoard board;
     private ChessPosition enPassantTarget;
     private boolean hasMoved;
+    private TeamColor winner;
+
 
     public ChessGame() {
         this.board = new ChessBoard();
         this.board.resetBoard(); // set up all pieces
         this.currentTurn = TeamColor.WHITE;
     }
+
 
     public enum TeamColor {
         WHITE, BLACK
@@ -187,6 +190,17 @@ public class ChessGame {
         }
         return null;
     }
+
+    public TeamColor getWinner() {
+        return winner;
+    }
+    public void setWinner(TeamColor winner) {
+        this.winner = winner;
+    }
+    public boolean isGameOver() {
+        return winner != null;
+    }
+
 
     // ----------------- Object Overrides -----------------
 
