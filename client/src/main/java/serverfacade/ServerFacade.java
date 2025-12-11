@@ -138,6 +138,10 @@ public class ServerFacade {
         return null;
     }
 
+    public String getServerUrl() {
+        return baseUrl;
+    }
+
     // helper response for createGame
     public static class GameIdResponse {
         private int gameID;
