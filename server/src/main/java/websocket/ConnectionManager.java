@@ -10,39 +10,63 @@ public class ConnectionManager {
     // gameID -> set of websocket sessions
     private final Map<Integer, Set<WsContext>> gameConnections = new ConcurrentHashMap<>();
 
+    // Add a session to a game
     public void add(int gameID, WsContext session) {
-        gameConnections.computeIfAbsent(gameID, id -> ConcurrentHashMap.newKeySet()).add(session);
+        if (session != null && session.session != null && session.session.isOpen()) {
+            gameConnections
+                    .computeIfAbsent(gameID, id -> ConcurrentHashMap.newKeySet())
+                    .add(session);
+        }
     }
 
+    // Remove a session from all games
     public void remove(WsContext session) {
+        if (session == null) return;
         for (Set<WsContext> sessions : gameConnections.values()) {
             sessions.remove(session);
         }
     }
 
+    // Get all sessions for a game (never null)
     public Set<WsContext> getSessions(int gameID) {
-        return gameConnections.getOrDefault(gameID, Set.of());
+        return gameConnections.getOrDefault(gameID, Collections.emptySet());
     }
 
+    // Send a message to a single session safely
     public void send(WsContext session, String json) {
-        if (session != null && session.session.isOpen()) {
-            session.send(json);
+        if (session != null && session.session != null && session.session.isOpen()) {
+            try {
+                session.send(json);
+            } catch (Exception e) {
+                System.err.println("Failed to send WS message to session "
+                        + session.sessionId() + ": " + e.getMessage());
+                remove(session); // remove broken session
+            }
         }
     }
 
+    // Broadcast to all sessions in a game, excluding one (can be null)
     public void broadcast(int gameID, WsContext exclude, String json) {
-        for (WsContext s : getSessions(gameID)) {
-            if (!s.equals(exclude) && s.session.isOpen()) {
-                s.send(json);
+        Set<WsContext> sessions = new HashSet<>(getSessions(gameID)); // defensive copy
+        for (WsContext s : sessions) {
+            try {
+                if (s != null && s.session != null && s.session.isOpen() && !s.equals(exclude)) {
+                    s.send(json);
+                } else {
+                    // Remove invalid or closed sessions
+                    remove(s);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to broadcast to session " +
+                        (s != null ? s.sessionId() : "null") + ": " + e.getMessage());
+                remove(s);
             }
         }
     }
-    // Optional: keep old version if you want to exclude root player for normal moves
+
+    // Broadcast with same behavior (kept for optional semantic difference)
     public void broadcastExcluding(int gameID, WsContext exclude, String json) {
-        for (WsContext s : getSessions(gameID)) {
-            if (!s.equals(exclude) && s.session.isOpen()) {
-                s.send(json);
-            }
-        }
+        broadcast(gameID, exclude, json);
     }
+
 }

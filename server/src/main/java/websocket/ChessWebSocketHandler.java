@@ -95,12 +95,12 @@ public class ChessWebSocketHandler {
     // --------------------------------------------------------
     // CONNECT
     // --------------------------------------------------------
+    // --------------------------------------------------------
+// CONNECT
+// --------------------------------------------------------
     private void handleConnect(UserGameCommand cmd, WsContext ctx) {
         try {
-
             GameData game = gameService.getGame(cmd.getAuthToken(), cmd.getGameID());
-            //--> 1. if there is no game, send an error.
-            //
 
             // join websocket room
             connections.add(cmd.getGameID(), ctx);
@@ -109,7 +109,7 @@ public class ChessWebSocketHandler {
             var load = new LoadGameMessage(game);
             connections.send(ctx, gson.toJson(load));
 
-            // broadcast NOTIFICATION to others
+            // broadcast NOTIFICATION to all other sessions
             String username = gameService.getUsernameForAuth(cmd.getAuthToken());
             var notify = new NotificationMessage(username + " connected");
             connections.broadcast(cmd.getGameID(), ctx, gson.toJson(notify));
@@ -120,8 +120,8 @@ public class ChessWebSocketHandler {
     }
 
     // --------------------------------------------------------
-    // MOVE
-    // --------------------------------------------------------
+// MOVE
+// --------------------------------------------------------
     private void handleMove(UserGameCommand cmd, WsContext ctx) {
         try {
             if (!(cmd instanceof UserMoveCommand)) {
@@ -141,21 +141,17 @@ public class ChessWebSocketHandler {
             // Apply move
             GameData updated = gameService.makeMove(cmd.getGameID(), cmd.getAuthToken(), move);
 
-            // Send board update to mover
-            connections.send(ctx, gson.toJson(new LoadGameMessage(updated)));
+            // Send board update to all sessions (players + observers)
+            connections.broadcast(cmd.getGameID(), null, gson.toJson(new LoadGameMessage(updated)));
 
-            // Send board update to everyone else (players + observers)
-            connections.broadcast(cmd.getGameID(), ctx, gson.toJson(new LoadGameMessage(updated)));
-
-            // Notify others of the move with description
+            // Notify all players of the move
             String username = gameService.getUsernameForAuth(cmd.getAuthToken());
             String moveDesc = username + " played: " + move;
-            connections.broadcast(cmd.getGameID(), ctx, gson.toJson(new NotificationMessage(moveDesc)));
+            connections.broadcast(cmd.getGameID(), null, gson.toJson(new NotificationMessage(moveDesc)));
 
             // Check for check
             ChessGame chess = updated.chessGame();
             ChessGame.TeamColor nextTurn = chess.getTeamTurn();
-
             if (chess.isInCheck(nextTurn) && !updated.isCheckmate()) {
                 String playerInCheck = (nextTurn == ChessGame.TeamColor.WHITE)
                         ? updated.whiteUsername()
@@ -175,6 +171,7 @@ public class ChessWebSocketHandler {
             sendError(ctx, e.getMessage());
         }
     }
+
 
 
 
