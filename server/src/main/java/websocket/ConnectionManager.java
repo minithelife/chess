@@ -37,4 +37,12 @@ public class ConnectionManager {
             }
         }
     }
+    // Optional: keep old version if you want to exclude root player for normal moves
+    public void broadcastExcluding(int gameID, WsContext exclude, String json) {
+        for (WsContext s : getSessions(gameID)) {
+            if (!s.equals(exclude) && s.session.isOpen()) {
+                s.send(json);
+            }
+        }
+    }
 }

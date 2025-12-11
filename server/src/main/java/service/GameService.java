@@ -1,111 +1,4 @@
-//package service;
-//
-//import dataaccess.AuthDAO;
-//import dataaccess.DataAccessException;
-//import dataaccess.GameDAO;
-//import dataaccess.UserDAO;
-//import handler.exceptions.BadRequestException;
-//import handler.exceptions.ForbiddenException;
-//import handler.exceptions.UnauthorizedException;
-//import model.GameData;
-//import chess.ChessGame;
-//
-//import java.util.List;
-//
-//public class GameService {
-//
-//    private final AuthDAO authDAO;
-//    private final GameDAO gameDAO;
-//    private final UserDAO userDAO;
-//
-//    public GameService(AuthDAO authDAO, GameDAO gameDAO, UserDAO userDAO) {
-//        this.authDAO = authDAO;
-//        this.gameDAO = gameDAO;
-//        this.userDAO = userDAO;
-//    }
-//
-//    /** Returns a list of all games, only if authToken is valid */
-//    public List<GameData> listGames(String authToken) throws UnauthorizedException, DataAccessException {
-//        var auth = authDAO.getAuth(authToken);
-//        if (auth == null) {
-//            throw new UnauthorizedException("unauthorized");
-//        }
-//        return gameDAO.getAllGames();
-//    }
-//
-//    /** Creates a new game and returns it */
-//    public int createGame(String authToken, String gameName) throws BadRequestException, UnauthorizedException, DataAccessException {
-//        var auth = authDAO.getAuth(authToken);
-//        if (auth == null) {
-//            throw new UnauthorizedException("unauthorized");
-//        }
-//        if (gameName == null || gameName.isEmpty()) {
-//            throw new BadRequestException("bad request");
-//        }
-//
-//        ChessGame chessGame = new ChessGame(); // initialize a new chess game
-//        GameData game = new GameData(1, gameName, null, null, chessGame);
-//        return gameDAO.createGame(game);
-//    }
-//
-//    /** Joins a player to a game in the requested color */
-//    public void joinGame(
-//            String authToken,
-//            int gameId,
-//            String playerColor
-//    ) throws UnauthorizedException, BadRequestException, ForbiddenException, DataAccessException {
-//        var auth = authDAO.getAuth(authToken);
-//        if (auth == null) {
-//            throw new UnauthorizedException("unauthorized");
-//        }
-//
-//        GameData game = gameDAO.getGame(gameId);
-//        if (game == null) {
-//            throw new BadRequestException("bad request");
-//        }
-//
-//        if ("WHITE".equalsIgnoreCase(playerColor)) {
-//            if (game.whiteUsername() != null) {
-//                throw new ForbiddenException("already taken");
-//            }
-//            game = game.withWhite(auth.username());
-//        } else if ("BLACK".equalsIgnoreCase(playerColor)) {
-//            if (game.blackUsername() != null) {
-//                throw new ForbiddenException("already taken");
-//            }
-//            game = game.withBlack(auth.username());
-//        } else {
-//            throw new BadRequestException("bad request");
-//        }
-//
-//        gameDAO.updateGame(game);
-//    }
-//    /** Returns a single game (no auth check, used by websocket) */
-//    public GameData getGame(int gameId) throws DataAccessException {
-//        return gameDAO.getGame(gameId);
-//    }
-//
-//    /** Updates a game (no auth check, used by websocket) */
-//    public void updateGame(GameData game) throws DataAccessException {
-//        gameDAO.updateGame(game);
-//    }
-//    public GameData getGame(String authToken, int gameId)
-//            throws UnauthorizedException, DataAccessException {
-//
-//        var auth = authDAO.getAuth(authToken);
-//        if (auth == null) {
-//            throw new UnauthorizedException("unauthorized");
-//        }
-//
-//        return gameDAO.getGame(gameId);
-//    }
-//
-//    public void saveGame(GameData game) throws DataAccessException {
-//        gameDAO.updateGame(game);
-//    }
-//
-//
-//}
+
 package service;
 
 import chess.InvalidMoveException;
@@ -155,8 +48,12 @@ public class GameService {
     /** Creates a new game and returns its ID */
     public int createGame(String authToken, String gameName) throws BadRequestException, UnauthorizedException, DataAccessException {
         var auth = authDAO.getAuth(authToken);
-        if (auth == null) throw new UnauthorizedException("unauthorized");
-        if (gameName == null || gameName.isEmpty()) throw new BadRequestException("bad request");
+        if (auth == null) {
+            throw new UnauthorizedException("unauthorized");
+        }
+        if (gameName == null || gameName.isEmpty()) {
+            throw new BadRequestException("bad request");
+        }
 
         ChessGame chessGame = new ChessGame();
         GameData game = new GameData(0, gameName, null, null, chessGame);
@@ -166,16 +63,24 @@ public class GameService {
     /** Joins a player to a game in the requested color */
     public GameData joinGame(String authToken, int gameId, String playerColor) throws UnauthorizedException, BadRequestException, ForbiddenException, DataAccessException {
         var auth = authDAO.getAuth(authToken);
-        if (auth == null) throw new UnauthorizedException("unauthorized");
+        if (auth == null) {
+            throw new UnauthorizedException("unauthorized");
+        }
 
         GameData game = gameDAO.getGame(gameId);
-        if (game == null) throw new BadRequestException("bad request");
+        if (game == null) {
+            throw new BadRequestException("bad request");
+        }
 
         if ("WHITE".equalsIgnoreCase(playerColor)) {
-            if (game.whiteUsername() != null) throw new ForbiddenException("already taken");
+            if (game.whiteUsername() != null) {
+                throw new ForbiddenException("already taken");
+            }
             game = game.withWhite(auth.username());
         } else if ("BLACK".equalsIgnoreCase(playerColor)) {
-            if (game.blackUsername() != null) throw new ForbiddenException("already taken");
+            if (game.blackUsername() != null) {
+                throw new ForbiddenException("already taken");
+            }
             game = game.withBlack(auth.username());
         } else {
             throw new BadRequestException("bad request");
@@ -204,7 +109,9 @@ public class GameService {
     /** Returns a game by authToken + gameId (auth check) */
     public GameData getGameState(int gameId, String authToken) throws UnauthorizedException, DataAccessException {
         var auth = authDAO.getAuth(authToken);
-        if (auth == null) throw new UnauthorizedException("unauthorized");
+        if (auth == null) {
+            throw new UnauthorizedException("unauthorized");
+        }
         return gameDAO.getGame(gameId);
     }
 
@@ -213,10 +120,14 @@ public class GameService {
             throws UnauthorizedException, BadRequestException, ForbiddenException, DataAccessException, InvalidMoveException {
 
         var auth = authDAO.getAuth(authToken);
-        if (auth == null) throw new UnauthorizedException("unauthorized");
+        if (auth == null) {
+            throw new UnauthorizedException("unauthorized");
+        }
 
         GameData game = gameDAO.getGame(gameId);
-        if (game == null) throw new BadRequestException("bad request");
+        if (game == null) {
+            throw new BadRequestException("bad request");
+        }
 
         ChessGame chessGame = game.chessGame();
 
@@ -227,9 +138,12 @@ public class GameService {
         String playerColor = auth.username().equals(game.whiteUsername()) ? "WHITE" :
                 auth.username().equals(game.blackUsername()) ? "BLACK" : null;
 
-        if (playerColor == null) throw new ForbiddenException("not a player");
-        if (!chessGame.getTeamTurn().name().equals(playerColor))
+        if (playerColor == null) {
+            throw new ForbiddenException("not a player");
+        }
+        if (!chessGame.getTeamTurn().name().equals(playerColor)){
             throw new ForbiddenException("not your turn");
+        }
 
         chessGame.makeMove(move);
 
@@ -245,10 +159,14 @@ public class GameService {
             throws UnauthorizedException, BadRequestException, ForbiddenException, DataAccessException {
 
         var auth = authDAO.getAuth(authToken);
-        if (auth == null) throw new UnauthorizedException("unauthorized");
+        if (auth == null) {
+            throw new UnauthorizedException("unauthorized");
+        }
 
         GameData game = gameDAO.getGame(gameId);
-        if (game == null) throw new BadRequestException("bad request");
+        if (game == null) {
+            throw new BadRequestException("bad request");
+        }
 
         String username = auth.username();
         String white = game.whiteUsername();
@@ -295,10 +213,14 @@ public class GameService {
             throws UnauthorizedException, DataAccessException {
 
         var auth = authDAO.getAuth(authToken);
-        if (auth == null) throw new UnauthorizedException("unauthorized");
+        if (auth == null) {
+            throw new UnauthorizedException("unauthorized");
+        }
 
         GameData game = gameDAO.getGame(gameId);
-        if (game == null) return null;
+        if (game == null) {
+            return null;
+        }
 
         String username = auth.username();
 

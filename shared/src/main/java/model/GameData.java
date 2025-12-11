@@ -36,4 +36,28 @@ public record GameData(
     public Object getChessGame() {
         return game;
     }
+
+    public boolean isCheckmate() {
+        if (game == null) return false;
+
+        // Check if either team is in checkmate
+        return game.isInCheckmate(ChessGame.TeamColor.WHITE) ||
+                game.isInCheckmate(ChessGame.TeamColor.BLACK);
+    }
+
+    /** Optional: returns the username of the winner if checkmate, null otherwise */
+    public String getWinner() {
+        if (game == null) return null;
+
+        ChessGame.TeamColor winnerTeam = game.getWinner();
+        if (winnerTeam == null) {
+            // if winner is not set, try to determine from checkmate state
+            if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) return blackUsername;
+            if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) return whiteUsername;
+            return null;
+        }
+
+        return (winnerTeam == ChessGame.TeamColor.WHITE) ? whiteUsername : blackUsername;
+    }
+
 }

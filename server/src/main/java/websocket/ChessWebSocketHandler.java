@@ -1,188 +1,7 @@
-//package websocket;
-//
-//import chess.ChessMove;
-//import chess.ChessPosition;
-//import com.google.gson.Gson;
-//import io.javalin.websocket.WsConfig;
-//import io.javalin.websocket.WsContext;
-//import model.GameData;
-//import service.GameService;
-//import websocket.messages.*;
-//
-//import java.util.Set;
-//import java.util.concurrent.ConcurrentHashMap;
-//
-///**
-// * WebSocket Handler for chess
-// */
-//public class ChessWebSocketHandler {
-//
-//    private final GameService gameService;
-//    private final Gson gson = new Gson();
-//    private final Set<WsContext> sessions = ConcurrentHashMap.newKeySet();
-//
-//    public ChessWebSocketHandler(GameService gameService) {
-//        this.gameService = gameService;
-//    }
-//
-//    public void configure(WsConfig ws) {
-//
-//        // ----- CONNECT -----
-//        ws.onConnect(ctx -> {
-//            sessions.add(ctx);
-//            System.out.println("Client connected: " + ctx.sessionId());
-//
-//            // Client expects JSON, not text
-//            //ctx.send(gson.toJson(new NotificationMessage("Connected to Chess WebSocket")));
-//        });
-//
-//        // ----- MESSAGE -----
-//        ws.onMessage(ctx -> {
-//
-//            String msg = ctx.message();
-//
-//            ClientMessage input;
-//
-//            // Safely decode JSON — ignore invalid
-//            try {
-//                input = gson.fromJson(msg, ClientMessage.class);
-//            } catch (Exception e) {
-//                ctx.send(gson.toJson(new ErrorMessage("Invalid message JSON")));
-//                return;
-//            }
-//
-//            // Null check avoids NPE crash
-//            if (input == null || input.type == null) {
-//                ctx.send(gson.toJson(new ErrorMessage("Missing type field")));
-//                return;
-//            }
-//
-//            switch (input.type) {
-//                case "join" -> joinGame(input, ctx);
-//                case "move" -> makeMove(input, ctx);
-//                default ->
-//                        ctx.send(gson.toJson(new ErrorMessage("Unknown command: " + input.type)));
-//            }
-//        });
-//
-//        // ----- CLOSE -----
-//        ws.onClose(ctx -> {
-//            sessions.remove(ctx);
-//            System.out.println("Client disconnected: " + ctx.sessionId());
-//        });
-//
-//        // ----- ERROR -----
-//        ws.onError(ctx ->
-//                System.out.println("WebSocket error: " + ctx.error())
-//        );
-//    }
-//
-//    // ============================================================
-//    // JOIN GAME
-//    // ============================================================
-//
-////    private void joinGame(ClientMessage msg, WsContext ctx) {
-////        try {
-////            // gameService.joinGame returns void
-////            GameData data = gameService.joinGame(msg.authToken, msg.gameId, msg.playerColor);
-////
-////            // Send initial board
-////            ctx.send(gson.toJson(new LoadGameMessage(data)));
-////
-////            // Notify other players
-////            broadcastExcept(ctx, gson.toJson(new NotificationMessage(
-////                    msg.playerColor + " joined game " + msg.gameId
-////            )));
-////
-////        } catch (Exception e) {
-////            ctx.send(gson.toJson(new ErrorMessage("Join failed: " + e.getMessage())));
-////        }
-////    }
-//private void joinGame(ClientMessage msg, WsContext ctx) {
-//    try {
-//        System.out.println("Trying to join game: auth=" + msg.authToken +
-//                ", gameId=" + msg.gameId +
-//                ", color=" + msg.playerColor);
-//
-//        GameData data = gameService.joinGame(msg.authToken, msg.gameId, msg.playerColor);
-//
-//        ctx.send(gson.toJson(new LoadGameMessage(data)));
-//        broadcastExcept(ctx, gson.toJson(new NotificationMessage(
-//                msg.playerColor + " joined game " + msg.gameId
-//        )));
-//    } catch (Exception e) {
-//        System.out.println("Join failed: " + e.getMessage());
-//        ctx.send(gson.toJson(new ErrorMessage("Join failed: " + e.getMessage())));
-//    }
-//}
-//
-//
-//    // ============================================================
-//    // MAKE MOVE
-//    // ============================================================
-//
-//    private void makeMove(ClientMessage msg, WsContext ctx) {
-//        try {
-//            // parse "e2 e4"
-//            String[] parts = msg.move.split(" ");
-//            if (parts.length != 2) throw new IllegalArgumentException("Expected 'e2 e4'");
-//
-//            ChessMove move = parseMove(parts[0], parts[1]);
-//
-//            GameData data = gameService.makeMove(msg.gameId, msg.authToken, move);
-//
-//            // Send updated board to this client
-//            ctx.send(gson.toJson(new LoadGameMessage(data)));
-//
-//            // Notify other players
-//            broadcastExcept(ctx, gson.toJson(new NotificationMessage(
-//                    "Move played in game " + msg.gameId + ": " + msg.move
-//            )));
-//
-//        } catch (Exception e) {
-//            ctx.send(gson.toJson(new ErrorMessage("Move failed: " + e.getMessage())));
-//        }
-//    }
-//
-//    private ChessMove parseMove(String s, String e) {
-//        int sc = s.charAt(0) - 'a' + 1;
-//        int sr = Integer.parseInt(s.substring(1));
-//        int ec = e.charAt(0) - 'a' + 1;
-//        int er = Integer.parseInt(e.substring(1));
-//
-//        return new ChessMove(
-//                new ChessPosition(sr, sc),
-//                new ChessPosition(er, ec),
-//                null
-//        );
-//    }
-//
-//    // ============================================================
-//    // BROADCAST (JSON only)
-//    // ============================================================
-//
-//    private void broadcastExcept(WsContext origin, String json) {
-//        for (WsContext s : sessions) {
-//            if (!s.equals(origin)) {
-//                s.send(json);
-//            }
-//        }
-//    }
-//
-//    // ============================================================
-//    // MODEL
-//    // ============================================================
-//
-//    private static class ClientMessage {
-//        String type;
-//        String authToken;
-//        Integer gameId;
-//        String playerColor;
-//        String move;
-//    }
-//}
+
 package websocket;
 
+import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPosition;
 import com.google.gson.Gson;
@@ -194,6 +13,8 @@ import websocket.commands.UserGameCommand;
 import websocket.commands.UserMoveCommand;
 import websocket.messages.*;
 
+import java.util.List;
+
 public class ChessWebSocketHandler {
 
     private final GameService gameService;
@@ -203,6 +24,17 @@ public class ChessWebSocketHandler {
     public ChessWebSocketHandler(GameService gameService) {
         this.gameService = gameService;
     }
+    private void handleHighlight(HighlightRequest req, WsContext ctx) {
+        try {
+            // Broadcast highlight to all sessions (players + observers)
+            for (WsContext s : connections.getSessions(req.getGameID())) {
+                connections.send(s, gson.toJson(new HighlightMessage(req.getPositions())));
+            }
+        } catch (Exception e) {
+            sendError(ctx, e.getMessage());
+        }
+    }
+
 
     public void configure(WsConfig ws) {
 
@@ -219,14 +51,26 @@ public class ChessWebSocketHandler {
         ws.onMessage(ctx -> {
             try {
                 UserGameCommand cmd = gson.fromJson(ctx.message(), UserGameCommand.class);
+
+                // Check if it's a move
                 if(cmd.getCommandType() == UserGameCommand.CommandType.MAKE_MOVE){
                     cmd = gson.fromJson(ctx.message(), UserMoveCommand.class);
+                    handle(cmd, ctx);
                 }
-                handle(cmd, ctx);
+                // Check if it's a highlight request (not a CommandType)
+                else if (ctx.message().contains("highlightPositions")) {
+                    HighlightRequest highlightReq = gson.fromJson(ctx.message(), HighlightRequest.class);
+                    handleHighlight(highlightReq, ctx);
+                }
+                else {
+                    handle(cmd, ctx);
+                }
             } catch (Exception ex) {
                 sendError(ctx, "Invalid JSON");
             }
         });
+
+
     }
 
     // --------------------------------------------------------
@@ -280,28 +124,59 @@ public class ChessWebSocketHandler {
     // --------------------------------------------------------
     private void handleMove(UserGameCommand cmd, WsContext ctx) {
         try {
-            if (cmd instanceof UserMoveCommand) {
-                UserMoveCommand userMoveCommand = (UserMoveCommand) cmd;
-                userMoveCommand.getMove();
+            if (!(cmd instanceof UserMoveCommand)) {
+                sendError(ctx, "Expected a move command");
+                return;
+            }
 
-                ChessMove move = userMoveCommand.getMove(); // Test framework inserts this
+            UserMoveCommand userMoveCommand = (UserMoveCommand) cmd;
+            ChessMove move = userMoveCommand.getMove();
 
+            // Validate move positions
+            if (!isValidPosition(move.getStartPosition()) || !isValidPosition(move.getEndPosition())) {
+                sendError(ctx, "Move out of bounds: " + move);
+                return;
+            }
+
+            // Apply move
             GameData updated = gameService.makeMove(cmd.getGameID(), cmd.getAuthToken(), move);
 
-            // Send LOAD_GAME to sender
+            // Send board update to mover
             connections.send(ctx, gson.toJson(new LoadGameMessage(updated)));
 
-            // Notify others (LOAD_GAME + NOTIFICATION)
-            connections.broadcast(cmd.getGameID(), ctx,
-                    gson.toJson(new LoadGameMessage(updated)));
-            connections.broadcast(cmd.getGameID(), ctx,
-                    gson.toJson(new NotificationMessage("Move played")));
+            // Send board update to everyone else (players + observers)
+            connections.broadcast(cmd.getGameID(), ctx, gson.toJson(new LoadGameMessage(updated)));
+
+            // Notify others of the move with description
+            String username = gameService.getUsernameForAuth(cmd.getAuthToken());
+            String moveDesc = username + " played: " + move;
+            connections.broadcast(cmd.getGameID(), ctx, gson.toJson(new NotificationMessage(moveDesc)));
+
+            // Check for check
+            ChessGame chess = updated.chessGame();
+            ChessGame.TeamColor nextTurn = chess.getTeamTurn();
+
+            if (chess.isInCheck(nextTurn) && !updated.isCheckmate()) {
+                String playerInCheck = (nextTurn == ChessGame.TeamColor.WHITE)
+                        ? updated.whiteUsername()
+                        : updated.blackUsername();
+                connections.broadcast(cmd.getGameID(), null,
+                        gson.toJson(new NotificationMessage(playerInCheck + " is in check")));
+            }
+
+            // Check for checkmate
+            if (updated.isCheckmate()) {
+                String winner = updated.getWinner();
+                connections.broadcast(cmd.getGameID(), null,
+                        gson.toJson(new NotificationMessage("Checkmate! " + winner + " wins!")));
             }
 
         } catch (Exception e) {
             sendError(ctx, e.getMessage());
         }
     }
+
+
 
     // --------------------------------------------------------
     // RESIGN
@@ -327,22 +202,38 @@ public class ChessWebSocketHandler {
     // --------------------------------------------------------
     private void handleLeave(UserGameCommand cmd, WsContext ctx) {
         try {
-            String username = gameService.leaveGame(cmd.getAuthToken(), cmd.getGameID());
-
+            // Remove connection from manager
             connections.remove(ctx);
 
-            var msg = new NotificationMessage(username + " left the game");
-            connections.broadcast(cmd.getGameID(), ctx, gson.toJson(msg));
+            // Determine if leaving player is a regular player or observer
+            String username = gameService.leaveGame(cmd.getAuthToken(), cmd.getGameID());
+
+            // Broadcast that someone left
+            connections.broadcast(cmd.getGameID(), ctx,
+                    gson.toJson(new NotificationMessage(username + " left the game")));
+
+            // Observers who have left should no longer receive updates
+            // This is handled by removing them from the ConnectionManager
 
         } catch (Exception e) {
             sendError(ctx, e.getMessage());
         }
     }
 
+    private boolean isValidPosition(chess.ChessPosition pos) {
+        int row = pos.getRow();
+        int col = pos.getColumn();
+        return row >= 1 && row <= 8 && col >= 1 && col <= 8;
+    }
     // --------------------------------------------------------
     // ERROR HELPER
     // --------------------------------------------------------
     private void sendError(WsContext ctx, String msg) {
         connections.send(ctx, gson.toJson(new ErrorMessage(msg)));
     }
+//    private void broadcastHighlight(int gameID, WsContext origin, List<ChessPosition> positions, String username) {
+//        var highlightMsg = new HighlightMessage(positions, username);
+//        connections.broadcast(gameID, origin, gson.toJson(highlightMsg));
+//    }
+
 }

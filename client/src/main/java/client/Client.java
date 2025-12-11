@@ -2,10 +2,7 @@ package client;
 
 import com.google.gson.Gson;
 import model.*;
-import model.requests.CreateGameRequest;
-import model.requests.JoinGameRequest;
-import model.requests.LoginRequest;
-import model.requests.RegisterRequest;
+import model.requests.*;
 import model.responses.ListGamesResponse;
 import serverfacade.ServerFacade;
 import ui.BoardDrawer;
@@ -28,28 +25,20 @@ public class Client implements ChessNotificationHandler {
     private final ServerFacade server;
     private State state = State.SIGNEDOUT;
     private String authToken = null;
-    private String username = null; // store logged-in username
+    private String username = null;
     private final Scanner scanner = new Scanner(System.in);
     private final Gson gson = new Gson();
     private ChessWebSocketClient wsClient;
 
-    // map index -> gameID from last listing
     private final Map<Integer, Integer> lastListed = new HashMap<>();
-
-    // current game state received via WS (set in onLoadGame)
     private volatile ChessGame currentGame = null;
     private volatile boolean currentBlackPerspective = false;
 
-    public Client(String serverUrl) {
-        this.server = new ServerFacade(serverUrl);
-    }
-
-    public Client(ServerFacade server) {
-        this.server = server;
-    }
+    public Client(String serverUrl) { this.server = new ServerFacade(serverUrl); }
+    public Client(ServerFacade server) { this.server = server; }
 
     public void run() {
-        System.out.println( EscapeSequences.ERASE_SCREEN + "♕ 240 Chess Client");
+        System.out.println(ERASE_SCREEN + "♕ 240 Chess Client");
         System.out.print(help());
 
         String result = "";
@@ -58,27 +47,17 @@ public class Client implements ChessNotificationHandler {
             String line = scanner.nextLine().trim();
             try {
                 result = eval(line);
-                if (!result.isBlank()) {
-                    System.out.print(result);
-                }
+                if (!result.isBlank()) System.out.print(result);
             } catch (Exception ex) {
                 System.out.println(ex.getMessage());
             }
-
         }
         System.out.println("Goodbye.");
     }
 
-    private void printPrompt() {
-        System.out.print("\n>>> ");
-    }
-
     public String eval(String input) throws Exception {
-        if (input.isBlank()) {
-            return "";
-        }
+        if (input.isBlank()) return "";
         String[] tokens = input.trim().split("\\s+");
-
         String cmd = tokens[0].toLowerCase();
         String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
 
@@ -97,27 +76,23 @@ public class Client implements ChessNotificationHandler {
         };
     }
 
-    // ----- commands -----
+    // ---------------- Commands ----------------
     private String register(String... params) throws Exception {
-        if (params.length != 3) {
-            return "Usage: register <username> <password> <email>\n";
-        }
+        if (params.length != 3) return "Usage: register <username> <password> <email>\n";
         RegisterRequest req = new RegisterRequest(params[0], params[1], params[2]);
         AuthData auth = server.register(req);
         this.authToken = auth.authToken();
-        this.username = auth.username(); // store username
+        this.username = auth.username();
         this.state = State.SIGNEDIN;
         return "Registered and logged in as " + auth.username() + "\n";
     }
 
     private String login(String... params) throws Exception {
-        if (params.length != 2) {
-            return "Usage: login <username> <password>\n";
-        }
+        if (params.length != 2) return "Usage: login <username> <password>\n";
         LoginRequest req = new LoginRequest(params[0], params[1]);
         AuthData auth = server.login(req);
         this.authToken = auth.authToken();
-        this.username = auth.username(); // store username
+        this.username = auth.username();
         this.state = State.SIGNEDIN;
         return "Logged in as " + auth.username() + "\n";
     }
@@ -134,12 +109,9 @@ public class Client implements ChessNotificationHandler {
 
     private String createGame(String... params) throws Exception {
         assertSignedIn();
-        if (params.length < 1) {
-            return "Usage: createGame <name>\n";
-        }
+        if (params.length < 1) return "Usage: createGame <name>\n";
         String name = String.join(" ", params);
-        var req = new CreateGameRequest(name);
-        var res = server.createGame(authToken, req);
+        server.createGame(authToken, new CreateGameRequest(name));
         return "Created game: " + name + "\n";
     }
 
@@ -157,28 +129,20 @@ public class Client implements ChessNotificationHandler {
                     g.blackUsername() == null ? "-" : g.blackUsername()));
             i++;
         }
-        if (sb.isEmpty()) {
-            sb.append("No games.\n");
-        }
+        if (sb.isEmpty()) sb.append("No games.\n");
         return sb.toString();
     }
 
+    // ---------------- Play / Observe ----------------
     private String play(String... params) throws Exception {
         assertSignedIn();
-        if (params.length < 1) {
-            return "Usage: play <list-number> (you will be prompted for color)\n";
-        }
+        if (params.length < 1) return "Usage: play <list-number> (you will be prompted for color)\n";
 
         int listNum;
-        try {
-            listNum = Integer.parseInt(params[0]);
-        } catch (NumberFormatException e) {
+        try { listNum = Integer.parseInt(params[0]); } catch (NumberFormatException e) {
             return "Invalid number. Run listGames first to see indexes.\n";
         }
-
-        if (!lastListed.containsKey(listNum)) {
-            return "Unknown game index - run listGames first.\n";
-        }
+        if (!lastListed.containsKey(listNum)) return "Unknown game index.\n";
 
         int gameId = lastListed.get(listNum);
 
@@ -189,13 +153,10 @@ public class Client implements ChessNotificationHandler {
             if (!color.equals("WHITE") && !color.equals("BLACK")) {
                 return "Invalid color. Choose 'white' or 'black'.\n";
             }
-        } else {
-            color = "WHITE";
-        }
+        } else color = "WHITE";
 
         server.joinGame(authToken, new JoinGameRequest(color, gameId));
         String wsUrl = buildWebSocketUrl(server.getServerUrl());
-
         this.wsClient = new ChessWebSocketClient(wsUrl, authToken, gameId, color, this);
         this.state = State.PLAYING;
 
@@ -219,24 +180,18 @@ public class Client implements ChessNotificationHandler {
                 case "help" -> printPlayHelp();
 
                 case "board" -> {
-                    if (currentGame != null) {
-                        BoardDrawer.drawBoard(currentGame, currentBlackPerspective);
-                    } else {
-                        System.out.println("Game not loaded yet.");
-                    }
+                    if (currentGame != null) BoardDrawer.drawBoard(currentGame, currentBlackPerspective);
+                    else System.out.println("Game not loaded yet.");
                 }
 
                 case "move" -> {
                     if (parts.length != 3) {
-                        System.out.println("Usage: move <from> <to>   (ex: move e2 e4)");
+                        System.out.println("Usage: move <from> <to> (ex: move e2 e4)");
                         break;
                     }
-                    String fromStr = parts[1].toLowerCase();
-                    String toStr = parts[2].toLowerCase();
-
                     try {
-                        int[] from = parseChessPosition(fromStr);
-                        int[] to   = parseChessPosition(toStr);
+                        int[] from = parseChessPosition(parts[1]);
+                        int[] to   = parseChessPosition(parts[2]);
                         wsClient.sendMove(from[0], from[1], to[0], to[1]);
                     } catch (Exception ex) {
                         System.out.println("Invalid move format. Use columns a-h and rows 1-8. Example: move e2 e4");
@@ -250,9 +205,7 @@ public class Client implements ChessNotificationHandler {
                         wsClient.resign();
                         System.out.println("You resigned the game.");
                         state = State.SIGNEDIN;
-                    } else {
-                        System.out.println("Resign canceled. Continue playing.");
-                    }
+                    } else System.out.println("Resign canceled. Continue playing.");
                 }
 
                 case "leave" -> {
@@ -263,7 +216,7 @@ public class Client implements ChessNotificationHandler {
 
                 case "highlight" -> {
                     if (parts.length != 2) {
-                        System.out.println("Usage: highlight <square>   (ex: highlight e2)");
+                        System.out.println("Usage: highlight <square> (ex: highlight e2)");
                         break;
                     }
                     if (currentGame == null) {
@@ -271,10 +224,9 @@ public class Client implements ChessNotificationHandler {
                         break;
                     }
 
-                    String sq = parts[1].toLowerCase();
                     try {
-                        int col = sq.charAt(0) - 'a' + 1;
-                        int row = Integer.parseInt(sq.substring(1));
+                        int col = parts[1].charAt(0) - 'a' + 1;
+                        int row = Integer.parseInt(parts[1].substring(1));
                         ChessPosition start = new ChessPosition(row, col);
 
                         Collection<ChessMove> legal = currentGame.validMoves(start);
@@ -285,10 +237,9 @@ public class Client implements ChessNotificationHandler {
 
                         Set<ChessPosition> highlights = new HashSet<>();
                         highlights.add(start);
-                        for (ChessMove m : legal) {
-                            highlights.add(m.getEndPosition());
-                        }
+                        for (ChessMove m : legal) highlights.add(m.getEndPosition());
 
+                        wsClient.sendHighlight(new ArrayList<>(highlights));
                         drawBoardWithHighlights(currentGame, currentBlackPerspective, highlights);
 
                     } catch (Exception ex) {
@@ -309,76 +260,70 @@ public class Client implements ChessNotificationHandler {
         this.state = State.SIGNEDIN;
         return "";
     }
-    private void drawBoardWithHighlights(ChessGame game, boolean blackPerspective, Set<ChessPosition> highlights) {
-        if (game == null) {
-            System.out.println("No game to draw.");
-            return;
+
+    private String observe(String... params) throws Exception {
+        assertSignedIn();
+        if (params.length != 1) return "Usage: observe <list-number>\n";
+
+        int listNum;
+        try { listNum = Integer.parseInt(params[0]); } catch (NumberFormatException e) {
+            return "Invalid number. Run listGames first to see indexes.\n";
         }
-        System.out.print(EscapeSequences.ERASE_SCREEN);
+        if (!lastListed.containsKey(listNum)) return "Unknown game index.\n";
 
-        var pieceSymbolAt = (java.util.function.BiFunction<ChessPosition, ChessGame, String>) (pos, g) -> {
-            ChessPiece piece = g.getBoard().getPiece(pos);
-            if (piece == null) return EscapeSequences.EMPTY;
-            switch (piece.getPieceType()) {
-                case PAWN:   return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_PAWN : EscapeSequences.BLACK_PAWN;
-                case ROOK:   return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_ROOK : EscapeSequences.BLACK_ROOK;
-                case KNIGHT: return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_KNIGHT : EscapeSequences.BLACK_KNIGHT;
-                case BISHOP: return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_BISHOP : EscapeSequences.BLACK_BISHOP;
-                case QUEEN:  return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_QUEEN : EscapeSequences.BLACK_QUEEN;
-                case KING:   return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_KING : EscapeSequences.BLACK_KING;
-                default:     return EscapeSequences.EMPTY;
-            }
-        };
+        int gameId = lastListed.get(listNum);
+        this.state = State.OBSERVING;
+        String wsUrl = buildWebSocketUrl(server.getServerUrl());
+        this.wsClient = new ChessWebSocketClient(wsUrl, authToken, gameId, null, this);
 
-        var squareBg = (java.util.function.BiFunction<Integer, Integer, String>) (r, c) -> {
-            boolean light = ((r + c) % 2 == 1);
-            return light ? EscapeSequences.SET_BG_COLOR_WHITE : EscapeSequences.SET_BG_COLOR_DARK_GREY;
-        };
-
-        if (!blackPerspective) {
-            printColumnLetters(false);
-            for (int row = 8; row >= 1; row--) {
-                StringBuilder line = new StringBuilder();
-                line.append(EscapeSequences.SET_TEXT_COLOR_WHITE).append(row).append(" ").append(EscapeSequences.RESET_TEXT_COLOR);
-                for (int col = 1; col <= 8; col++) {
-                    ChessPosition pos = new ChessPosition(row, col);
-                    String piece = pieceSymbolAt.apply(pos, game);
-                    String bg = squareBg.apply(row, col);
-                    if (highlights != null && highlights.contains(pos)) bg = EscapeSequences.SET_BG_COLOR_YELLOW;
-                    line.append(bg).append(piece).append(EscapeSequences.RESET_BG_COLOR);
-                }
-                System.out.println(line);
-            }
-            printColumnLetters(false);
-        } else {
-            printColumnLetters(true);
-            for (int row = 1; row <= 8; row++) {
-                StringBuilder line = new StringBuilder();
-                line.append(EscapeSequences.SET_TEXT_COLOR_WHITE).append(row).append(" ").append(EscapeSequences.RESET_TEXT_COLOR);
-                for (int col = 8; col >= 1; col--) {
-                    ChessPosition pos = new ChessPosition(row, col);
-                    String piece = pieceSymbolAt.apply(pos, game);
-                    String bg = squareBg.apply(row, col);
-                    if (highlights != null && highlights.contains(pos)) bg = EscapeSequences.SET_BG_COLOR_YELLOW;
-                    line.append(bg).append(piece).append(EscapeSequences.RESET_BG_COLOR);
-                }
-                System.out.println(line);
-            }
-            printColumnLetters(true);
+        GameData gd = server.getGame(gameId, authToken);
+        if (gd != null) {
+            ChessGame g = gd.game();
+            if (g != null) {
+                currentGame = g;
+                currentBlackPerspective = false;
+                BoardDrawer.drawBoard(currentGame, currentBlackPerspective);
+            } else BoardDrawer.drawInitialBoard(false);
         }
+
+        return "Observing game\n";
     }
 
-
-    private String buildWebSocketUrl(String baseUrl) {
-        if (baseUrl.startsWith("https://")) {
-            return "wss://" + baseUrl.substring(8) + "/ws";
-        } else if (baseUrl.startsWith("http://")) {
-            return "ws://" + baseUrl.substring(7) + "/ws";
-        } else {
-            return baseUrl + "/ws";
+    private String redraw() {
+        if (state != State.PLAYING && state != State.OBSERVING) {
+            return "You must be in a game (play/observe) to redraw the board.\n";
         }
+        if (wsClient != null) wsClient.redraw();
+        return "";
     }
 
+    private void assertSignedIn() throws Exception {
+        if (state == State.SIGNEDOUT || authToken == null) throw new Exception("You must be logged in.");
+    }
+
+    // ---------------- Helpers ----------------
+    private String help() {
+        if (state == State.SIGNEDOUT || authToken == null) {
+            return """
+                    Commands:
+                    - register <username> <password> <email>
+                    - login <username> <password>
+                    - quit
+                    """;
+        }
+        return """
+                Commands:
+                - logout
+                - createGame <name>
+                - listGames
+                - play <list-number>
+                - observe <list-number>
+                - redraw
+                - quit
+                """;
+    }
+
+    private void printPrompt() { System.out.print("\n>>> "); }
     private void printPlayHelp() {
         System.out.println("""
                 In-game commands:
@@ -399,75 +344,69 @@ public class Client implements ChessNotificationHandler {
         return new int[] { row, col };
     }
 
-    private String observe(String... params) throws Exception {
-        assertSignedIn();
-        if (params.length != 1) return "Usage: observe <list-number>\n";
-        int listNum;
-        try { listNum = Integer.parseInt(params[0]); } catch (NumberFormatException e) {
-            return "Invalid number. Run listGames first to see indexes.\n";
-        }
-        if (!lastListed.containsKey(listNum)) return "Unknown game index - run listGames first.\n";
+    private String buildWebSocketUrl(String baseUrl) {
+        if (baseUrl.startsWith("https://")) return "wss://" + baseUrl.substring(8) + "/ws";
+        else if (baseUrl.startsWith("http://")) return "ws://" + baseUrl.substring(7) + "/ws";
+        else return baseUrl + "/ws";
+    }
 
-        int gameId = lastListed.get(listNum);
-        this.state = State.OBSERVING;
-        String wsUrl = buildWebSocketUrl(server.getServerUrl());
-        this.wsClient = new ChessWebSocketClient(wsUrl, authToken, gameId, null, this);
+    private void drawBoardWithHighlights(ChessGame game, boolean blackPerspective, Set<ChessPosition> highlights) {
+        if (game == null) return;
 
-        GameData gd = server.getGame(gameId, authToken);
-        if (gd != null) {
-            ChessGame g = gd.game();
-            if (g != null) {
-                currentGame = g;
-                currentBlackPerspective = false;
-                BoardDrawer.drawBoard(currentGame, currentBlackPerspective);
-            } else {
-                BoardDrawer.drawInitialBoard(false);
+        System.out.print(ERASE_SCREEN);
+
+        var pieceSymbolAt = (java.util.function.BiFunction<ChessPosition, ChessGame, String>) (pos, g) -> {
+            ChessPiece piece = g.getBoard().getPiece(pos);
+            if (piece == null) return EMPTY;
+            switch (piece.getPieceType()) {
+                case PAWN:   return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? WHITE_PAWN : BLACK_PAWN;
+                case ROOK:   return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? WHITE_ROOK : BLACK_ROOK;
+                case KNIGHT: return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? WHITE_KNIGHT : BLACK_KNIGHT;
+                case BISHOP: return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? WHITE_BISHOP : BLACK_BISHOP;
+                case QUEEN:  return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? WHITE_QUEEN : BLACK_QUEEN;
+                case KING:   return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? WHITE_KING : BLACK_KING;
+                default:     return EMPTY;
             }
+        };
+
+        var squareBg = (java.util.function.BiFunction<Integer, Integer, String>) (r, c) -> ((r + c) % 2 == 1) ? SET_BG_COLOR_WHITE : SET_BG_COLOR_DARK_GREY;
+
+        if (!blackPerspective) {
+            printColumnLetters(false);
+            for (int row = 8; row >= 1; row--) {
+                StringBuilder line = new StringBuilder();
+                line.append(SET_TEXT_COLOR_WHITE).append(row).append(" ").append(RESET_TEXT_COLOR);
+                for (int col = 1; col <= 8; col++) {
+                    ChessPosition pos = new ChessPosition(row, col);
+                    String piece = pieceSymbolAt.apply(pos, game);
+                    String bg = squareBg.apply(row, col);
+                    if (highlights != null && highlights.contains(pos)) bg = SET_BG_COLOR_YELLOW;
+                    line.append(bg).append(piece).append(RESET_BG_COLOR);
+                }
+                System.out.println(line);
+            }
+            printColumnLetters(false);
+        } else {
+            printColumnLetters(true);
+            for (int row = 1; row <= 8; row++) {
+                StringBuilder line = new StringBuilder();
+                line.append(SET_TEXT_COLOR_WHITE).append(row).append(" ").append(RESET_TEXT_COLOR);
+                for (int col = 8; col >= 1; col--) {
+                    ChessPosition pos = new ChessPosition(row, col);
+                    String piece = pieceSymbolAt.apply(pos, game);
+                    String bg = squareBg.apply(row, col);
+                    if (highlights != null && highlights.contains(pos)) bg = SET_BG_COLOR_YELLOW;
+                    line.append(bg).append(piece).append(RESET_BG_COLOR);
+                }
+                System.out.println(line);
+            }
+            printColumnLetters(true);
         }
-        return "Observing game\n";
     }
 
-    private String redraw() {
-        if (state != State.PLAYING && state != State.OBSERVING) {
-            return "You must be in a game (play/observe) to redraw the board.\n";
-        }
-        if (wsClient == null) return "No active WebSocket connection.\n";
-        wsClient.redraw();
-        return "";
-    }
-
-    private void assertSignedIn() throws Exception {
-        if (state == State.SIGNEDOUT || authToken == null) {
-            throw new Exception("You must be logged in.");
-        }
-    }
-
-    private String help() {
-        if (state== State.SIGNEDOUT || authToken == null) {
-            return """
-                Commands:
-                - register <username> <password> <email>
-                - login <username> <password>
-                - quit
-                """;
-        }
-        return """
-                Commands:
-                - logout
-                - createGame <name>
-                - listGames
-                - play <list-number>
-                - observe <list-number>
-                - redraw
-                - quit
-                """;
-    }
-
+    // ---------------- ChessNotificationHandler ----------------
     @Override
     public void onNotification(String message) {
-        if (username != null && (message.contains("in check") || message.contains("checkmate"))) {
-            message = username + " " + message;
-        }
         System.out.println("\n[NOTIFICATION] " + message);
         printPrompt();
     }
@@ -483,6 +422,13 @@ public class Client implements ChessNotificationHandler {
         this.currentGame = game;
         this.currentBlackPerspective = blackPerspective;
         BoardDrawer.drawBoard(game, blackPerspective);
+        printPrompt();
+    }
+
+    @Override
+    public void onHighlight(List<ChessPosition> highlightPositions) {
+        if (currentGame == null) return;
+        drawBoardWithHighlights(currentGame, currentBlackPerspective, new HashSet<>(highlightPositions));
         printPrompt();
     }
 }
