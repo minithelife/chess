@@ -1,9 +1,15 @@
 package server;
 
-import com.google.gson.Gson;
 import dataaccess.*;
 import handler.*;
 import service.*;
+
+//import org.eclipse.jetty.websocket.server.WebSocketHandler;
+//import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+
+import websocket.ChessWebSocketHandler;
+
+
 
 import io.javalin.Javalin;
 
@@ -45,6 +51,7 @@ public class Server {
         // Create Javalin app
         app = Javalin.create(config -> config.staticFiles.add("web"));
 
+
         // Endpoints
         app.delete("/db", clearHandler::clear);
         app.post("/user", registerHandler::register);
@@ -53,6 +60,12 @@ public class Server {
         app.get("/game", gameHandler::listGames);
         app.post("/game", gameHandler::createGame);
         app.put("/game", gameHandler::joinGame);
+
+        // Websocket
+        ChessWebSocketHandler wsHandler = new ChessWebSocketHandler(gameService);
+        app.ws("/ws", wsHandler::configure);
+
+        System.out.println("WebSocket listening at ws://localhost:" + port + "/ws");
 
         // Register global exception handler
         exceptionHandler.register(app);
