@@ -49,8 +49,8 @@ public class BoardDrawer {
                     symbol = switch (piece.getPieceType()) {
                         case PAWN -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_PAWN : EscapeSequences.BLACK_PAWN;
                         case ROOK -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_ROOK : EscapeSequences.BLACK_ROOK;
-                        case KNIGHT -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_KNIGHT : EscapeSequences.BLACK_KNIGHT;
-                        case BISHOP -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_BISHOP : EscapeSequences.BLACK_BISHOP;
+                        case KNIGHT -> piece.getTeamColor()==ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_KNIGHT : EscapeSequences.BLACK_KNIGHT;
+                        case BISHOP -> piece.getTeamColor()==ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_BISHOP : EscapeSequences.BLACK_BISHOP;
                         case QUEEN -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_QUEEN : EscapeSequences.BLACK_QUEEN;
                         case KING -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_KING : EscapeSequences.BLACK_KING;
                     };
@@ -104,7 +104,9 @@ public class BoardDrawer {
      */
     public static String pieceSymbolAt(ChessGame game, ChessPosition pos) {
         ChessPiece piece = game.getBoard().getPiece(pos);
-        if (piece == null) return EscapeSequences.EMPTY;
+        if (piece == null) {
+            return EscapeSequences.EMPTY;
+        }
 
         switch (piece.getPieceType()) {
             case PAWN:

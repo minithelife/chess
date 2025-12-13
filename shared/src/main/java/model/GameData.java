@@ -45,7 +45,9 @@ public record GameData(
     /** Returns the winner's username, or null if the game is not over */
     public String getWinnerUsername() {
         ChessGame.TeamColor winner = getWinner();
-        if (winner == null) return null;
+        if (winner == null) {
+            return null;
+        }
         return winner == ChessGame.TeamColor.WHITE ? whiteUsername : blackUsername;
     }
 

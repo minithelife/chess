@@ -273,7 +273,9 @@ public class ChessWebSocketClient implements WebSocket.Listener {
 
     // ---------------- Player commands ----------------
     public void sendMove(int startRow, int startCol, int endRow, int endCol) {
-        if (!isPlayer || game == null) return;
+        if (!isPlayer || game == null) {
+            return;
+        }
 
         ChessMove move = new ChessMove(
                 new ChessPosition(startRow, startCol),
@@ -288,7 +290,9 @@ public class ChessWebSocketClient implements WebSocket.Listener {
 
 
     public void resign() {
-        if (!isPlayer) return;
+        if (!isPlayer) {
+            return;
+        }
         UserGameCommand cmd = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameId);
         webSocket.sendText(gson.toJson(cmd), true);
     }

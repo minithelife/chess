@@ -215,7 +215,9 @@ public class ChessWebSocketHandler {
 
             if (updated.isGameOver()) {
                 String winnerUsername = updated.getWinnerUsername();
-                if (winnerUsername == null) winnerUsername = "Unknown";
+                if (winnerUsername == null) {
+                    winnerUsername = "Unknown";
+                }
                 ChessGame.TeamColor winnerColor = updated.getWinner();
                 connections.broadcast(cmd.getGameID(),
                         gson.toJson(new NotificationMessage(

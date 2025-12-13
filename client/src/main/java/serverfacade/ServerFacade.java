@@ -46,7 +46,9 @@ public class ServerFacade {
             try {
                 JsonObject obj = JsonParser.parseString(res.body()).getAsJsonObject();
                 String msg = obj.has("message") ? obj.get("message").getAsString() : null;
-                if (msg != null) throw new Exception(msg);
+                if (msg != null) {
+                    throw new Exception(msg);
+                }
             } catch (JsonParseException ignored) {}
 
             throw new Exception("HTTP " + code);
