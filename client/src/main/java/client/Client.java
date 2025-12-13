@@ -57,8 +57,13 @@ public class Client implements ChessNotificationHandler {
         System.out.println("Goodbye.");
     }
 
-    private void printPrompt() { System.out.print("\n>>> "); }
+    private void printPrompt() {
+        System.out.print("\n>>> ");
+    }
 
+    private void printGamePrompt() {
+        System.out.print("Game> ");
+    }
     public String eval(String input) throws Exception {
         if (input.isBlank()) return "";
         String[] tokens = input.trim().split("\\s+");
@@ -171,7 +176,8 @@ public class Client implements ChessNotificationHandler {
 
     private void inGameLoop() {
         while (state == State.PLAYING || state == State.OBSERVING) {
-            System.out.print("\nGame> \n");
+            System.out.print("\n");
+            printGamePrompt();
             String line = scanner.nextLine().trim();
             if (line.isBlank()) continue;
 
@@ -294,22 +300,13 @@ public class Client implements ChessNotificationHandler {
 
         int gameId = lastListed.get(listNum);
         state = State.OBSERVING;
+
         String wsUrl = buildWebSocketUrl(server.getServerUrl());
         wsClient = new ChessWebSocketClient(wsUrl, authToken, gameId, null, this);
 
-        GameData gd = server.getGame(gameId, authToken);
-        if (gd != null) {
-            ChessGame g = gd.game();
-            if (g != null) {
-                currentGame = g;
-                currentBlackPerspective = false;
-                BoardDrawer.drawBoard(currentGame, currentBlackPerspective);
-            } else {
-                BoardDrawer.drawInitialBoard(false);
-            }
-        }
+        // IMPORTANT: don't draw here; wait for LOAD_GAME from the server to avoid double-draw interleaving
         inGameLoop();
-        return "Observing game\n";
+        return "";
     }
 
     private String redraw() {
@@ -350,36 +347,62 @@ public class Client implements ChessNotificationHandler {
         if (baseUrl.startsWith("http://")) return "ws://" + baseUrl.substring(7) + "/ws";
         return baseUrl + "/ws";
     }
+    private void clearCurrentConsoleLine() {
+        System.out.print("\r" + EscapeSequences.ERASE_LINE);
+    }
 
     // ----- Notification handlers -----
     @Override
     public void onNotification(String message) {
-        if (username != null && (message.contains("in check") || message.contains("checkmate"))) {
-            message = username + " " + message;
+        clearCurrentConsoleLine();
+        System.out.println("[NOTIFICATION] " + message);
+
+        System.out.print("\n");
+        if (state == State.PLAYING || state == State.OBSERVING) {
+            printGamePrompt();
+        } else {
+            printPrompt();
         }
-        System.out.println("\n[NOTIFICATION] " + message);
-        printPrompt();
     }
 
     @Override
     public void onError(String message) {
-        System.out.println("\n[ERROR] " + message);
-        printPrompt();
+        clearCurrentConsoleLine();
+        System.out.println("[ERROR] " + message);
+
+        System.out.print("\n");
+        if (state == State.PLAYING || state == State.OBSERVING) {
+            printGamePrompt();
+        } else {
+            printPrompt();
+        }
     }
 
     @Override
-    public void onLoadGame(ChessGame game, boolean blackPerspective) {
+    public void onLoadGame(chess.ChessGame game, boolean blackPerspective) {
+        clearCurrentConsoleLine();          // <-- clears "Game> ..." line if it's sitting there
         this.currentGame = game;
         this.currentBlackPerspective = blackPerspective;
-        BoardDrawer.drawBoard(game, blackPerspective);
-        printPrompt();
+
+        ui.BoardDrawer.drawBoard(game, blackPerspective);
+
+        System.out.print("\n");
+        if (state == State.PLAYING || state == State.OBSERVING) {
+            printGamePrompt();
+        } else {
+            printPrompt();
+        }
     }
 
     @Override
     public void onHighlight(Collection<ChessPosition> positions) {
         if (currentGame == null) return;
         drawBoardWithHighlights(currentGame, currentBlackPerspective, new HashSet<>(positions));
-        printPrompt();
+        if (state == State.PLAYING || state == State.OBSERVING) {
+            printGamePrompt();
+        } else {
+            printPrompt();
+        }
     }
 
     private void drawBoardWithHighlights(ChessGame game, boolean blackPerspective, Set<ChessPosition> highlights) {

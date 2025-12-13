@@ -61,6 +61,6 @@ public class ChessMove {
 
     @Override
     public String toString() {
-        return String.format("%s%s%s",  startPosition, endPosition, promotionPiece);
-    }
-}
+        String promo = (promotionPiece == null) ? "" : promotionPiece.toString();
+        return String.format("%s%s%s", startPosition, endPosition, promo);
+    }}
