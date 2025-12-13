@@ -20,10 +20,6 @@ public record GameData(
     public GameData withBlack(String username) {
         return new GameData(gameID, gameName, whiteUsername, username, game);
     }
-    /** Returns a new GameData with updated game state */
-    public GameData withGame(ChessGame newGame) {
-        return new GameData(gameID, gameName, whiteUsername, blackUsername, newGame);
-    }
 
     public ChessGame chessGame() {
         return game;

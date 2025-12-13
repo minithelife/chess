@@ -210,7 +210,9 @@ public class Client implements ChessNotificationHandler {
                     if (currentGame != null) {
                         BoardDrawer.drawBoard(currentGame, currentBlackPerspective);
                     }
-                    else System.out.println("Game not loaded yet.");
+                    else {
+                        System.out.println("Game not loaded yet.");
+                    }
                 }
                 case "move" -> {
                     if (state != State.PLAYING) {
@@ -496,6 +498,4 @@ public class Client implements ChessNotificationHandler {
         // Print column letters
         BoardDrawer.printColumnLetters(blackPerspective);
     }
-
-
 }

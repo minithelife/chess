@@ -109,15 +109,6 @@ public class GameService {
     }
 
 
-    /** Returns a game by authToken + gameId (auth check) */
-    public GameData getGameState(int gameId, String authToken) throws UnauthorizedException, DataAccessException {
-        var auth = authDAO.getAuth(authToken);
-        if (auth == null) {
-            throw new UnauthorizedException("unauthorized");
-        }
-        return gameDAO.getGame(gameId);
-    }
-
     /** Applies a move in a game */
     public GameData makeMove(int gameId, String authToken, ChessMove move)
             throws UnauthorizedException, BadRequestException, ForbiddenException, DataAccessException, InvalidMoveException {
@@ -198,18 +189,6 @@ public class GameService {
         gameDAO.updateGame(updated);
 
         return loser;
-    }
-
-
-
-    /** Updates a game */
-    public void updateGame(GameData game) throws DataAccessException {
-        gameDAO.updateGame(game);
-    }
-
-    /** Saves a game */
-    public void saveGame(GameData game) throws DataAccessException {
-        gameDAO.updateGame(game);
     }
 
     public String leaveGame(String authToken, int gameId)

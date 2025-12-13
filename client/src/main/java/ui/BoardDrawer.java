@@ -9,13 +9,6 @@ import static ui.EscapeSequences.*;
 
 public class BoardDrawer {
 
-    /**
-     * Draws the initial board using the current game state.
-     */
-    public static void drawInitialBoard(boolean blackPerspective) {
-        ChessGame game = new ChessGame(); // sets up all pieces
-        drawBoard(game, blackPerspective);
-    }
 
     /**
      * Draws the board for a game, either from white or black perspective.
