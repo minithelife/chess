@@ -455,65 +455,17 @@ public class Client implements ChessNotificationHandler {
         if (currentGame == null) {
             return;
         }
-        drawBoardWithHighlights(currentGame, currentBlackPerspective, new HashSet<>(positions));
+
+        BoardDrawer.drawBoardWithHighlights(
+                currentGame,
+                currentBlackPerspective,
+                new HashSet<>(positions)
+        );
+
         if (state == State.PLAYING || state == State.OBSERVING) {
             printGamePrompt();
         } else {
             printPrompt();
         }
-    }
-
-    private void drawBoardWithHighlights(ChessGame game, boolean blackPerspective, Set<ChessPosition> highlights) {
-        if (game == null) {
-            System.out.println("No game to draw.");
-            return;
-        }
-
-        System.out.print(EscapeSequences.ERASE_SCREEN);
-
-        // Loop over rows depending on perspective
-        for (int row = blackPerspective ? 1 : 8;
-             blackPerspective ? row <= 8 : row >= 1;
-             row += blackPerspective ? 1 : -1) {
-
-            StringBuilder line = new StringBuilder();
-            line.append(EscapeSequences.SET_TEXT_COLOR_WHITE).append(row).append(" ").append(EscapeSequences.RESET_TEXT_COLOR);
-
-            for (int col = blackPerspective ? 8 : 1;
-                 blackPerspective ? col >= 1 : col <= 8;
-                 col += blackPerspective ? -1 : 1) {
-
-                ChessPosition pos = new ChessPosition(row, col);
-                ChessPiece piece = game.getBoard().getPiece(pos);
-
-                // Get the correct symbol for this piece
-                String symbol;
-                if (piece == null) {
-                    symbol = EscapeSequences.EMPTY;
-                } else {
-                    symbol = switch (piece.getPieceType()) {
-                        case PAWN -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_PAWN : EscapeSequences.BLACK_PAWN;
-                        case ROOK -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_ROOK : EscapeSequences.BLACK_ROOK;
-                        case KNIGHT -> piece.getTeamColor()==ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_KNIGHT : EscapeSequences.BLACK_KNIGHT;
-                        case BISHOP -> piece.getTeamColor()==ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_BISHOP : EscapeSequences.BLACK_BISHOP;
-                        case QUEEN -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_QUEEN : EscapeSequences.BLACK_QUEEN;
-                        case KING -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ? EscapeSequences.WHITE_KING : EscapeSequences.BLACK_KING;
-                    };
-                }
-
-                // Background: normal or highlighted
-                String bg = ((row + col) % 2 == 1) ? EscapeSequences.SET_BG_COLOR_WHITE : EscapeSequences.SET_BG_COLOR_DARK_GREY;
-                if (highlights.contains(pos)) {
-                    bg = (state == State.PLAYING) ? EscapeSequences.SET_BG_COLOR_YELLOW : EscapeSequences.SET_BG_COLOR_GREEN;
-                }
-
-                line.append(bg).append(symbol).append(EscapeSequences.RESET_BG_COLOR);
-            }
-
-            System.out.println(line);
-        }
-
-        // Print column letters
-        BoardDrawer.printColumnLetters(blackPerspective);
     }
 }
