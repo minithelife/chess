@@ -13,19 +13,21 @@ import model.GameData;
 import service.GameService;
 import websocket.commands.UserGameCommand;
 import websocket.commands.UserMoveCommand;
-import websocket.messages.HighlightRequest;
-import websocket.messages.LoadGameMessage;
-import websocket.messages.NotificationMessage;
-import websocket.messages.ErrorMessage;
+import websocket.messages.*;
 
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ChessWebSocketHandler {
 
     private final GameService gameService;
     private final Gson gson = new Gson();
     private final ConnectionManager connections = new ConnectionManager();
+
+    // Store auth tokens for sessions (null if observer)
+    private final Map<WsContext, String> ctxAuthTokens = new HashMap<>();
 
     public ChessWebSocketHandler(GameService gameService) {
         this.gameService = gameService;
@@ -43,6 +45,7 @@ public class ChessWebSocketHandler {
 
         ws.onClose(ctx -> {
             connections.remove(ctx);
+            ctxAuthTokens.remove(ctx);
             System.out.println("WS Close: " + ctx.sessionId());
         });
 
@@ -103,8 +106,9 @@ public class ChessWebSocketHandler {
     // --------------------------------------------------------
     private void handleHighlight(HighlightRequest req, WsContext ctx) {
         try {
-            // Get the game; observers do not need auth
-            GameData game = gameService.getGame(null, req.getGameID());
+            // Use stored auth token for this session
+            String authToken = ctxAuthTokens.get(ctx); // null for observers
+            GameData game = gameService.getGame(authToken, req.getGameID());
             ChessGame chess = game.chessGame();
 
             if (req.getPositions() == null || req.getPositions().isEmpty()) {
@@ -141,10 +145,15 @@ public class ChessWebSocketHandler {
         try {
             GameData game = gameService.getGame(cmd.getAuthToken(), cmd.getGameID());
 
+            // Store auth token for this session
+            ctxAuthTokens.put(ctx, cmd.getAuthToken());
+
             connections.add(cmd.getGameID(), ctx);
 
+            // Send initial game state to this client
             connections.send(ctx, gson.toJson(new LoadGameMessage(game)));
 
+            // Notify others
             String username = gameService.getUsernameForAuth(cmd.getAuthToken());
             String role;
             if (username.equals(game.whiteUsername())) {
@@ -233,6 +242,7 @@ public class ChessWebSocketHandler {
     private void handleLeave(UserGameCommand cmd, WsContext ctx) {
         try {
             connections.remove(ctx);
+            ctxAuthTokens.remove(ctx);
 
             String username = gameService.leaveGame(cmd.getAuthToken(), cmd.getGameID());
 
