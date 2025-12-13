@@ -248,8 +248,8 @@ public class Client implements ChessNotificationHandler {
                     String ans = scanner.nextLine().trim().toLowerCase();
                     if (ans.equals("yes") || ans.equals("y")) {
                         wsClient.resign();
-                        System.out.println("You resigned.");
-                        state = State.SIGNEDIN;
+                        System.out.println("Resign request sent. The game is now over for you, but you are still connected.");
+                        // IMPORTANT: do NOT change state here. Spec says resign does not cause leaving the game.
                     }
                 }
                 case "leave" -> {
