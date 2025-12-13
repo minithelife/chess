@@ -151,6 +151,8 @@ import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPosition;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import websocket.commands.UserGameCommand;
 import websocket.commands.UserMoveCommand;
 import websocket.messages.ErrorMessage;
@@ -161,8 +163,11 @@ import websocket.messages.ServerMessage;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
+import websocket.messages.HighlightRequest;
 
 public class ChessWebSocketClient implements WebSocket.Listener {
 
@@ -200,6 +205,12 @@ public class ChessWebSocketClient implements WebSocket.Listener {
         UserGameCommand joinCmd = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameId);
         webSocket.sendText(gson.toJson(joinCmd), true);
     }
+    public void sendHighlight(Collection<ChessPosition> positions) {
+        HighlightRequest req =
+                new HighlightRequest(gameId, List.copyOf(positions));
+        webSocket.sendText(gson.toJson(req), true);
+    }
+
 
     // ---------------- WebSocket Listener ----------------
     @Override
@@ -212,26 +223,47 @@ public class ChessWebSocketClient implements WebSocket.Listener {
     @Override
     public CompletionStage<?> onText(WebSocket ws, CharSequence data, boolean last) {
         String msgStr = data.toString();
-        ServerMessage msg = gson.fromJson(msgStr, ServerMessage.class);
+        try {
+            JsonObject json = JsonParser.parseString(msgStr).getAsJsonObject();
 
-        switch (msg.getServerMessageType()) {
-            case LOAD_GAME -> {
-                LoadGameMessage load = gson.fromJson(msgStr, LoadGameMessage.class);
-                ChessGame g = load.getGame().game();
-                this.game = g;
-                handler.onLoadGame(g, "BLACK".equals(color));
+            // 1️⃣ Highlight updates
+            if (json.has("positions")) {
+                HighlightRequest highlight = gson.fromJson(msgStr, HighlightRequest.class);
+                handler.onHighlight(highlight.getPositions());
+
+                // 2️⃣ Normal server messages with type
+            } else if (json.has("serverMessageType")) {
+                ServerMessage msg = gson.fromJson(msgStr, ServerMessage.class);
+
+                switch (msg.getServerMessageType()) {
+                    case LOAD_GAME -> {
+                        LoadGameMessage load = gson.fromJson(msgStr, LoadGameMessage.class);
+                        ChessGame g = load.getGame().game();
+                        this.game = g;
+                        handler.onLoadGame(g, "BLACK".equals(color));
+                    }
+                    case NOTIFICATION -> {
+                        NotificationMessage notif = gson.fromJson(msgStr, NotificationMessage.class);
+                        handler.onNotification(notif.getMessage());
+                    }
+                    case ERROR -> {
+                        ErrorMessage err = gson.fromJson(msgStr, ErrorMessage.class);
+                        handler.onError(err.errorMessage);
+                    }
+                    default -> System.out.println("Unknown serverMessageType: " + msg.getServerMessageType());
+                }
+
+                // 3️⃣ Fallback for unknown messages
+            } else {
+                System.out.println("Unknown message from server: " + msgStr);
             }
-            case NOTIFICATION -> {
-                NotificationMessage notif = gson.fromJson(msgStr, NotificationMessage.class);
-                handler.onNotification(notif.getMessage());
-            }
-            case ERROR -> {
-                ErrorMessage err = gson.fromJson(msgStr, ErrorMessage.class);
-                handler.onError(err.errorMessage);
-            }
+
+        } catch (Exception e) {
+            System.out.println("WebSocket parse error: " + e.getMessage());
         }
         return WebSocket.Listener.super.onText(ws, data, last);
     }
+
 
     @Override
     public void onError(WebSocket webSocket, Throwable error) {

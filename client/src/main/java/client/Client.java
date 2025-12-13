@@ -289,7 +289,7 @@ public class Client implements ChessNotificationHandler {
                             highlights.add(m.getEndPosition());
                         }
 
-                        drawBoardWithHighlights(currentGame, currentBlackPerspective, highlights);
+                        wsClient.sendHighlight(highlights);
 
                     } catch (Exception ex) {
                         System.out.println("Invalid square. Use columns a-h and rows 1-8. Example: highlight e2");
@@ -485,4 +485,15 @@ public class Client implements ChessNotificationHandler {
         BoardDrawer.drawBoard(game, blackPerspective);
         printPrompt();
     }
+    @Override
+    public void onHighlight(Collection<ChessPosition> positions) {
+        if (currentGame == null) return;
+        drawBoardWithHighlights(
+                currentGame,
+                currentBlackPerspective,
+                new HashSet<>(positions)
+        );
+        printPrompt();
+    }
+
 }

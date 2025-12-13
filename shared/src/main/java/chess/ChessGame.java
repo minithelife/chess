@@ -61,6 +61,7 @@ public class ChessGame {
             return isInCheck(piece.getTeamColor(), temp);
         });
 
+
         return moves;
     }
 
@@ -82,14 +83,21 @@ public class ChessGame {
             throw new InvalidMoveException("Invalid move!");
         }
 
-
-
-        // apply the move
+        // Apply the move first
         makeMoveOnBoard(board, move);
 
-        // switch turn
-        currentTurn = (currentTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+        // Check for checkmate AFTER the move
+        TeamColor opponent = (currentTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+        if (isInCheckmate(opponent)) {
+            winner = currentTurn; // current player wins
+        }
+
+        // Switch turn if game is not over
+        if (!isGameOver()) {
+            currentTurn = opponent;
+        }
     }
+
 
     /**
      * Checks if a team is in check.

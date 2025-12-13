@@ -2,46 +2,55 @@ package websocket;
 
 import io.javalin.websocket.WsContext;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager {
 
-    // gameID -> set of websocket sessions
+    // Map gameID -> set of websocket sessions
     private final Map<Integer, Set<WsContext>> gameConnections = new ConcurrentHashMap<>();
 
+    // Add a session to a game
     public void add(int gameID, WsContext session) {
-        gameConnections.computeIfAbsent(gameID, id -> ConcurrentHashMap.newKeySet()).add(session);
+        gameConnections
+                .computeIfAbsent(gameID, id -> ConcurrentHashMap.newKeySet())
+                .add(session);
     }
 
+    // Remove a session from all games
     public void remove(WsContext session) {
         for (Set<WsContext> sessions : gameConnections.values()) {
             sessions.remove(session);
         }
     }
 
+    // Get all sessions in a game
     public Set<WsContext> getSessions(int gameID) {
         return gameConnections.getOrDefault(gameID, Set.of());
     }
 
+    // Send a message to a single client
     public void send(WsContext session, String json) {
         if (session != null && session.session.isOpen()) {
-            session.send(json);
-        }
-    }
-
-    public void broadcast(int gameID, WsContext exclude, String json) {
-        for (WsContext s : getSessions(gameID)) {
-            if (!s.equals(exclude) && s.session.isOpen()) {
-                s.send(json);
+            synchronized (session) {
+                session.send(json);
             }
         }
     }
-    // Optional: keep old version if you want to exclude root player for normal moves
+
+    // Broadcast to all clients in the game
+    public void broadcast(int gameID, String json) {
+        for (WsContext s : getSessions(gameID)) {
+            send(s, json);
+        }
+    }
+
+    // Broadcast to all clients **except** one (root)
     public void broadcastExcluding(int gameID, WsContext exclude, String json) {
         for (WsContext s : getSessions(gameID)) {
-            if (!s.equals(exclude) && s.session.isOpen()) {
-                s.send(json);
+            if (!s.equals(exclude)) {
+                send(s, json);
             }
         }
     }

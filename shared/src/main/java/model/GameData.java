@@ -36,4 +36,21 @@ public record GameData(
     public Object getChessGame() {
         return game;
     }
+
+    /** Returns the winner team color, or null if the game is not over */
+    public ChessGame.TeamColor getWinner() {
+        return game.getWinner();
+    }
+
+    /** Returns the winner's username, or null if the game is not over */
+    public String getWinnerUsername() {
+        ChessGame.TeamColor winner = getWinner();
+        if (winner == null) return null;
+        return winner == ChessGame.TeamColor.WHITE ? whiteUsername : blackUsername;
+    }
+
+    /** Returns true if the game is over (winner exists) */
+    public boolean isGameOver() {
+        return game.isGameOver();
+    }
 }
