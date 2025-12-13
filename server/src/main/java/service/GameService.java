@@ -46,33 +46,19 @@ public class GameService {
     }
 
     /** Creates a new game and returns its ID */
-    public int createGame(String authToken, String gameName)
-            throws BadRequestException, UnauthorizedException, DataAccessException {
-
+    public int createGame(String authToken, String gameName) throws BadRequestException, UnauthorizedException, DataAccessException {
         var auth = authDAO.getAuth(authToken);
         if (auth == null) {
             throw new UnauthorizedException("unauthorized");
         }
-
         if (gameName == null || gameName.isEmpty()) {
             throw new BadRequestException("bad request");
         }
 
         ChessGame chessGame = new ChessGame();
-
-        // ✅ CORRECT ORDER
-        GameData game = new GameData(
-                0,
-                gameName,    // ✅ gameName
-                null,        // whiteUsername
-                null,        // blackUsername
-                chessGame
-        );
-
-
+        GameData game = new GameData(0, gameName, null, null, chessGame);
         return gameDAO.createGame(game);
     }
-
 
     /** Joins a player to a game in the requested color */
     public GameData joinGame(String authToken, int gameId, String playerColor) throws UnauthorizedException, BadRequestException, ForbiddenException, DataAccessException {

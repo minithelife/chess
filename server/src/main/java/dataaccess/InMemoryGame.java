@@ -14,20 +14,9 @@ public class InMemoryGame implements GameDAO {
 
     @Override
     public int createGame(GameData game) {
-        int id = nextGameId++;
-
-        GameData stored = new GameData(
-                id,
-                game.gameName(),
-                game.whiteUsername(),
-                game.blackUsername(),
-                game.chessGame()
-        );
-
-        games.put(id, stored);
-        return id;
+        games.put(game.gameID(), game);
+        return nextGameId;
     }
-
 
     @Override
     public GameData getGame(int gameId) {
