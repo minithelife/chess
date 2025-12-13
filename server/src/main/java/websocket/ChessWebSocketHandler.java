@@ -107,6 +107,9 @@ public class ChessWebSocketHandler {
     private void handleHighlight(HighlightRequest req, WsContext ctx) {
         try {
             // Use stored auth token for this session
+
+            System.out.println("Highlight request received: gameID=" + req.getGameID() + ", positions=" + req.getPositions());
+
             String authToken = ctxAuthTokens.get(ctx); // null for observers
             GameData game = gameService.getGame(authToken, req.getGameID());
             ChessGame chess = game.chessGame();
