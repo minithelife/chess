@@ -8,8 +8,3 @@ public class ErrorMessage extends ServerMessage {
         super(ServerMessageType.ERROR);
         this.errorMessage = msg;
     }
-
-//    public String getMessage() {
-//        return message;
-//    }
-}
