@@ -22,9 +22,6 @@ public class ChessGame {
         this.currentTurn = TeamColor.WHITE;
     }
 
-//    public boolean isCheckmate() {
-//    }
-
 
     public enum TeamColor {
         WHITE, BLACK
