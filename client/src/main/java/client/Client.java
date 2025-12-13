@@ -206,93 +206,111 @@ public class Client implements ChessNotificationHandler {
 
             switch (cmd) {
                 case "help" -> printInGameHelp();
-                case "board" -> {
-                    if (currentGame != null) {
-                        BoardDrawer.drawBoard(currentGame, currentBlackPerspective);
-                    }
-                    else {
-                        System.out.println("Game not loaded yet.");
-                    }
-                }
-                case "move" -> {
-                    if (state != State.PLAYING) {
-                        System.out.println("Observers cannot move.");
-                        break;
-                    }
-                    if (parts.length != 3) { System.out.println("Usage: move <from> <to>"); break; }
-                    try {
-                        int[] from = parseChessPosition(parts[1]);
-                        int[] to = parseChessPosition(parts[2]);
-                        wsClient.sendMove(from[0], from[1], to[0], to[1]);
-
-                        // ---- NEW CHECK/CHECKMATE NOTIFICATION ----
-                        ChessGame.TeamColor currentTurn = currentGame.getTeamTurn();
-                        ChessGame.TeamColor opponent = currentTurn == ChessGame.TeamColor.WHITE ?
-                                ChessGame.TeamColor.BLACK :
-                                ChessGame.TeamColor.WHITE;
-
-                        if (currentGame.isInCheck(opponent)) {
-                            System.out.println("Opponent's king is in check!");
-                        }
-                        if (currentGame.isInCheckmate(opponent)) {
-                            System.out.println("Checkmate! " + currentTurn + " wins!");
-                        }
-                        // -----------------------------------------
-
-                    } catch (Exception e) {
-                        System.out.println("Invalid move format.");
-                    }
-                }
-                // ... existing code ...
-                case "highlight" -> {
-                    if (parts.length != 2) { System.out.println("Usage: highlight <square>"); break; }
-                    if (currentGame == null) { System.out.println("Game not loaded."); break; }
-                    try {
-                        int col = parts[1].charAt(0) - 'a' + 1;
-                        int row = Integer.parseInt(parts[1].substring(1));
-                        ChessPosition start = new ChessPosition(row, col);
-
-                        Collection<ChessMove> legal = currentGame.validMoves(start);
-                        if (legal == null || legal.isEmpty()) { System.out.println("No legal moves."); break; }
-
-                        Set<ChessPosition> highlights = new HashSet<>();
-                        highlights.add(start);
-                        highlights.addAll(legal.stream().map(ChessMove::getEndPosition).toList());
-
-                        // Highlight is a LOCAL operation (per spec). Do not send over WebSocket.
-                        BoardDrawer.drawBoardWithHighlights(currentGame, currentBlackPerspective, highlights);
-                    } catch (Exception e) {
-                        System.out.println("Invalid square. Use a1-h8.");
-                    }
-                }
-// ... existing code ...
-                case "resign" -> {
-                    if (state != State.PLAYING) { System.out.println("Observers cannot resign."); break; }
-                    System.out.print("Are you sure you want to resign? (yes/no): ");
-                    String ans = scanner.nextLine().trim().toLowerCase();
-                    if (ans.equals("yes") || ans.equals("y")) {
-                        wsClient.resign();
-                        System.out.println("Resign request sent. The game is now over for you, but you are still connected.");
-                        // IMPORTANT: do NOT change state here. Spec says resign does not cause leaving the game.
-                    }
-                }
-                case "leave" -> {
-                    if (wsClient != null) {
-                        wsClient.leave();
-                    }
-                    System.out.println("Left game.");
-                    state = State.SIGNEDIN;
-                }
-                case "quit", "exit" -> {
-                    if (wsClient != null) {
-                        wsClient.leave();
-                    }
-                    System.out.println("Exiting client.");
-                    System.exit(0);
-                }
+                case "board" -> redrawBoard();
+                case "move" -> handleMoveCommand(parts);
+                case "highlight" -> handleHighlightCommand(parts);
+                case "resign" -> handleResignCommand();
+                case "leave" -> handleLeaveCommand();
+                case "quit", "exit" -> handleQuitCommand();
                 default -> System.out.println("Unknown command. Type 'help'.");
             }
         }
+    }
+
+    private void redrawBoard() {
+        if (currentGame != null) {
+            BoardDrawer.drawBoard(currentGame, currentBlackPerspective);
+        } else {
+            System.out.println("Game not loaded yet.");
+        }
+    }
+
+    private void handleMoveCommand(String[] parts) {
+        if (state != State.PLAYING) {
+            System.out.println("Observers cannot move.");
+            return;
+        }
+        if (parts.length != 3) {
+            System.out.println("Usage: move <from> <to>");
+            return;
+        }
+        if (wsClient == null) {
+            System.out.println("Not connected to game server.");
+            return;
+        }
+
+        try {
+            int[] from = parseChessPosition(parts[1]);
+            int[] to = parseChessPosition(parts[2]);
+            wsClient.sendMove(from[0], from[1], to[0], to[1]);
+        } catch (Exception e) {
+            System.out.println("Invalid move format.");
+        }
+    }
+
+    private void handleHighlightCommand(String[] parts) {
+        if (parts.length != 2) {
+            System.out.println("Usage: highlight <square>");
+            return;
+        }
+        if (currentGame == null) {
+            System.out.println("Game not loaded.");
+            return;
+        }
+
+        try {
+            int col = parts[1].charAt(0) - 'a' + 1;
+            int row = Integer.parseInt(parts[1].substring(1));
+            ChessPosition start = new ChessPosition(row, col);
+
+            Collection<ChessMove> legal = currentGame.validMoves(start);
+            if (legal == null || legal.isEmpty()) {
+                System.out.println("No legal moves.");
+                return;
+            }
+
+            Set<ChessPosition> highlights = new HashSet<>();
+            highlights.add(start);
+            highlights.addAll(legal.stream().map(ChessMove::getEndPosition).toList());
+
+            BoardDrawer.drawBoardWithHighlights(currentGame, currentBlackPerspective, highlights);
+        } catch (Exception e) {
+            System.out.println("Invalid square. Use a1-h8.");
+        }
+    }
+
+    private void handleResignCommand() {
+        if (state != State.PLAYING) {
+            System.out.println("Observers cannot resign.");
+            return;
+        }
+        if (wsClient == null) {
+            System.out.println("Not connected to game server.");
+            return;
+        }
+
+        System.out.print("Are you sure you want to resign? (yes/no): ");
+        String ans = scanner.nextLine().trim().toLowerCase();
+        if (ans.equals("yes") || ans.equals("y")) {
+            wsClient.resign();
+            System.out.println("Resign request sent. The game is now over for you, but you are still connected.");
+        }
+    }
+
+    private void handleLeaveCommand() {
+        if (wsClient != null) {
+            wsClient.leave();
+        }
+        System.out.println("Left game.");
+        state = State.SIGNEDIN;
+    }
+
+    private void handleQuitCommand() {
+        if (wsClient != null) {
+            wsClient.leave();
+        }
+        System.out.println("Exiting client.");
+        System.exit(0);
     }
 
 
