@@ -6,13 +6,20 @@ import chess.ChessPosition;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsContext;
 import model.GameData;
 import service.GameService;
 import websocket.commands.UserGameCommand;
 import websocket.commands.UserMoveCommand;
-import websocket.messages.*;
+import websocket.messages.HighlightRequest;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ErrorMessage;
+
+import java.lang.reflect.Type;
+import java.util.List;
 
 public class ChessWebSocketHandler {
 
@@ -43,23 +50,26 @@ public class ChessWebSocketHandler {
             try {
                 JsonObject json = JsonParser.parseString(ctx.message()).getAsJsonObject();
 
-                // 1️⃣ Highlight requests have "positions" — handle first
+                // Highlight requests
                 if (json.has("positions")) {
-                    HighlightRequest highlight = gson.fromJson(ctx.message(), HighlightRequest.class);
+                    Integer gameID = json.get("gameID").getAsInt();
+
+                    Type listType = new TypeToken<List<ChessPosition>>() {}.getType();
+                    List<ChessPosition> positions = gson.fromJson(json.get("positions"), listType);
+
+                    HighlightRequest highlight = new HighlightRequest(gameID, positions);
                     handleHighlight(highlight, ctx);
 
-                    // 2️⃣ Normal game commands have "commandType"
+                    // Game commands
                 } else if (json.has("commandType")) {
                     UserGameCommand cmd = gson.fromJson(ctx.message(), UserGameCommand.class);
 
-                    // If it's a MAKE_MOVE, parse fully as UserMoveCommand
                     if (cmd.getCommandType() == UserGameCommand.CommandType.MAKE_MOVE) {
                         cmd = gson.fromJson(ctx.message(), UserMoveCommand.class);
                     }
 
                     handle(cmd, ctx);
 
-                    // 3️⃣ Anything else is invalid
                 } else {
                     sendError(ctx, "Unknown command");
                 }
@@ -87,15 +97,42 @@ public class ChessWebSocketHandler {
             case LEAVE -> handleLeave(cmd, ctx);
         }
     }
+
+    // --------------------------------------------------------
+    // HIGHLIGHT
+    // --------------------------------------------------------
     private void handleHighlight(HighlightRequest req, WsContext ctx) {
         try {
-            // Just send the highlight back to the same client
-            connections.send(ctx, gson.toJson(req));
+            // Get the game; observers do not need auth
+            GameData game = gameService.getGame(null, req.getGameID());
+            ChessGame chess = game.chessGame();
+
+            if (req.getPositions() == null || req.getPositions().isEmpty()) {
+                sendError(ctx, "No position provided");
+                return;
+            }
+
+            ChessPosition pos = req.getPositions().get(0);
+
+            if (pos.getRow() < 1 || pos.getRow() > 8 || pos.getColumn() < 1 || pos.getColumn() > 8) {
+                sendError(ctx, "Position out of bounds");
+                return;
+            }
+
+            // Compute legal moves for the piece at this position
+            var moves = chess.validMoves(pos);
+
+            List<ChessPosition> highlights = moves == null ? List.of() :
+                    moves.stream().map(ChessMove::getEndPosition).toList();
+
+            // Send back highlight response
+            HighlightRequest response = new HighlightRequest(req.getGameID(), highlights);
+            connections.send(ctx, gson.toJson(response));
+
         } catch (Exception e) {
             sendError(ctx, e.getMessage());
         }
     }
-
 
     // --------------------------------------------------------
     // CONNECT
@@ -104,16 +141,19 @@ public class ChessWebSocketHandler {
         try {
             GameData game = gameService.getGame(cmd.getAuthToken(), cmd.getGameID());
 
-            // join websocket room
             connections.add(cmd.getGameID(), ctx);
 
-            // send LOAD_GAME to root client
             connections.send(ctx, gson.toJson(new LoadGameMessage(game)));
 
-            // broadcast NOTIFICATION to all other clients
             String username = gameService.getUsernameForAuth(cmd.getAuthToken());
-            String role = (game.whiteUsername().equals(username)) ? "WHITE" :
-                    (game.blackUsername().equals(username)) ? "BLACK" : "observer";
+            String role;
+            if (username.equals(game.whiteUsername())) {
+                role = "WHITE";
+            } else if (username.equals(game.blackUsername())) {
+                role = "BLACK";
+            } else {
+                role = "observer";
+            }
 
             NotificationMessage notify = new NotificationMessage(username + " connected as " + role);
             connections.broadcastExcluding(cmd.getGameID(), ctx, gson.toJson(notify));
@@ -141,13 +181,10 @@ public class ChessWebSocketHandler {
                 return;
             }
 
-            // Apply move
             GameData updated = gameService.makeMove(cmd.getGameID(), cmd.getAuthToken(), move);
 
-            // Broadcast updated board to all clients (including root)
             connections.broadcast(cmd.getGameID(), gson.toJson(new LoadGameMessage(updated)));
 
-            // Notify other clients of the move (exclude root)
             String username = gameService.getUsernameForAuth(cmd.getAuthToken());
             connections.broadcastExcluding(cmd.getGameID(), ctx,
                     gson.toJson(new NotificationMessage(username + " played: " + move)));
@@ -155,18 +192,18 @@ public class ChessWebSocketHandler {
             ChessGame chess = updated.chessGame();
             ChessGame.TeamColor nextTurn = chess.getTeamTurn();
 
-            // Notify check
             if (chess.isInCheck(nextTurn) && !updated.isGameOver()) {
-                String playerInCheck = (nextTurn == ChessGame.TeamColor.WHITE)
-                        ? updated.whiteUsername()
-                        : updated.blackUsername();
+                String playerInCheck = nextTurn == ChessGame.TeamColor.WHITE ?
+                        updated.whiteUsername() != null ? updated.whiteUsername() : "WHITE player (not joined)" :
+                        updated.blackUsername() != null ? updated.blackUsername() : "BLACK player (not joined)";
+
                 connections.broadcast(cmd.getGameID(),
                         gson.toJson(new NotificationMessage(playerInCheck + " is in check")));
             }
 
-            // Notify checkmate/game over
             if (updated.isGameOver()) {
                 String winnerUsername = updated.getWinnerUsername();
+                if (winnerUsername == null) winnerUsername = "Unknown";
                 ChessGame.TeamColor winnerColor = updated.getWinner();
                 connections.broadcast(cmd.getGameID(),
                         gson.toJson(new NotificationMessage(
@@ -184,10 +221,7 @@ public class ChessWebSocketHandler {
     private void handleResign(UserGameCommand cmd, WsContext ctx) {
         try {
             String loser = gameService.resignGame(cmd.getAuthToken(), cmd.getGameID());
-
-            NotificationMessage msg = new NotificationMessage(loser + " resigned");
-            connections.broadcast(cmd.getGameID(), gson.toJson(msg));
-
+            connections.broadcast(cmd.getGameID(), gson.toJson(new NotificationMessage(loser + " resigned")));
         } catch (Exception e) {
             sendError(ctx, e.getMessage());
         }
@@ -202,7 +236,6 @@ public class ChessWebSocketHandler {
 
             String username = gameService.leaveGame(cmd.getAuthToken(), cmd.getGameID());
 
-            // Notify other clients only
             connections.broadcastExcluding(cmd.getGameID(), ctx,
                     gson.toJson(new NotificationMessage(username + " left the game")));
 
