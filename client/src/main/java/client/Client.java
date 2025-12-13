@@ -213,6 +213,7 @@ public class Client implements ChessNotificationHandler {
                         System.out.println("Invalid move format.");
                     }
                 }
+                // ... existing code ...
                 case "highlight" -> {
                     if (parts.length != 2) { System.out.println("Usage: highlight <square>"); break; }
                     if (currentGame == null) { System.out.println("Game not loaded."); break; }
@@ -220,16 +221,21 @@ public class Client implements ChessNotificationHandler {
                         int col = parts[1].charAt(0) - 'a' + 1;
                         int row = Integer.parseInt(parts[1].substring(1));
                         ChessPosition start = new ChessPosition(row, col);
+
                         Collection<ChessMove> legal = currentGame.validMoves(start);
                         if (legal == null || legal.isEmpty()) { System.out.println("No legal moves."); break; }
+
                         Set<ChessPosition> highlights = new HashSet<>();
                         highlights.add(start);
                         highlights.addAll(legal.stream().map(ChessMove::getEndPosition).toList());
-                        wsClient.sendHighlight(highlights);
+
+                        // Highlight is a LOCAL operation (per spec). Do not send over WebSocket.
+                        BoardDrawer.drawBoardWithHighlights(currentGame, currentBlackPerspective, highlights);
                     } catch (Exception e) {
                         System.out.println("Invalid square. Use a1-h8.");
                     }
                 }
+// ... existing code ...
                 case "resign" -> {
                     if (state != State.PLAYING) { System.out.println("Observers cannot resign."); break; }
                     System.out.print("Are you sure you want to resign? (yes/no): ");
